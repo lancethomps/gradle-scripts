@@ -10,14 +10,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Install
-      shell: bash
-      run: |
-        brew install bash pcre shellcheck shfmt
-        bash --version
-        shellcheck --version
-        echo "shfmt $(shfmt --version)"
-
-    - name: Run check
-      run: make ci
+    - uses: asdf-vm/actions/install@v1
+    - run: brew install bash pcre
+    - run: make ci
