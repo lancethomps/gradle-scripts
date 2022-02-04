@@ -1,0 +1,17 @@
+[*]
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+# noinspection EditorConfigKeyCorrectness
+[{dotfiles/**,setup.sh,test/**}]
+shell_variant = bash # like -ln=bash
+binary_next_line = false # like -bn
+switch_case_indent = true # like -ci
+space_redirects = false # like -sr
+keep_padding = false # like -kp
+function_next_line = false # like -fn
