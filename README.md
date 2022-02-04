@@ -1,4 +1,4 @@
-# Git Utility Scripts
+# Gradle Utility Scripts
 
 [![Build Status](https://app.travis-ci.com/lancethomps/gradle-scripts.svg?branch=main)](https://app.travis-ci.com/lancethomps/gradle-scripts)
 
