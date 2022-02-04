@@ -1,0 +1,22 @@
+name: Build
+on: [ push ]
+jobs:
+  build:
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+        - { os: macos-latest }
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install
+      shell: bash
+      run: |
+        brew install shellcheck shfmt pcre
+        shellcheck --version
+        echo "shfmt $(shfmt --version)"
+
+    - name: Run check
+      run: make ci
