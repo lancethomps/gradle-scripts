@@ -10,7 +10,7 @@ _GRADLE_ALLOPT_SCRIPTS=(
 
 function _gradle_allopt() {
   _gradle "$@"
-  if command -v _allopt > /dev/null 2>&1; then
+  if command -v _allopt >/dev/null 2>&1; then
     _allopt "$@"
   else
     return 0
