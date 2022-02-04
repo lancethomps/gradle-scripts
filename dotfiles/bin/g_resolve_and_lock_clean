@@ -56,5 +56,5 @@ if test "${cd_to_git_base_dir-}" = "true"; then
   cd "$(git base-dir)"
 fi
 
-git ls-files -- ':(glob)**/*.lockfile' | xargs rm -v
+git ls-files -- ':(glob)**/*.lockfile' | xargs rm -fv
 g_resolve_and_lock clean "${PASSTHROUGH_ARGS[@]}"
