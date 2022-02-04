@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=all
 S="${BASH_SOURCE[0]}" && while [ -h "$S" ]; do D="$(cd -P "$(dirname "$S")" && pwd)" && S="$(readlink "$S")" && [[ $S != /* ]] && S="$D/$S"; done || true && _SCRIPT_DIR="$(cd -P "$(dirname "$S")" && pwd)" && unset S D
 GRADLE_FUNCTIONS_FILE="${_SCRIPT_DIR}/../.dotfiles/gradle_functions.sh"
 

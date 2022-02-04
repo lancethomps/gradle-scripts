@@ -1,5 +1,5 @@
 # Gradle Utility Scripts
 
-[![Build Status](https://app.travis-ci.com/lancethomps/gradle-scripts.svg?branch=main)](https://app.travis-ci.com/lancethomps/gradle-scripts)
+[![Build](https://github.com/lancethomps/gradle-scripts/actions/workflows/build.yml/badge.svg)](https://github.com/lancethomps/gradle-scripts/actions/workflows/build.yml)
 
 Once you've cloned the repo, run the [setup.sh](setup.sh) script: `./setup.sh`

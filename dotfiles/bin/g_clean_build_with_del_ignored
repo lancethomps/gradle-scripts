@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-# shellcheck source=.dotfiles/lib/common.sh disable=SC2016
+# shellcheck source=.dotfiles/lib/common.sh disable=SC2016,SC1091
 if test -e "${DOTFILES}/lib/common.sh"; then source "${DOTFILES}/lib/common.sh"; else echo '"${DOTFILES}/lib/common.sh" does not exist - resolved to: '"${DOTFILES}/lib/common.sh" && exit 1; fi
 set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
