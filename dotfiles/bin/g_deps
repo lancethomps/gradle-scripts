@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+# shellcheck source=.dotfiles/lib/common.sh disable=SC2016
+if test -e "${DOTFILES}/lib/common.sh"; then source "${DOTFILES}/lib/common.sh"; else echo '"${DOTFILES}/lib/common.sh" does not exist - resolved to: '"${DOTFILES}/lib/common.sh" && exit 1; fi
+source "${DOTFILES}/gradle_functions.sh"
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+open="${open:-true}"
+gradle_args=(-q --console=plain)
+deps_type="all"
+projects=()
+configurations=()
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--config <configuration>...] [--no-open | --open] [--standard-configurations] <other_args>
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# FILTERARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --config)
+      shift
+      configurations+=("$1")
+      shift
+      ;;
+    --no-open)
+      open=false
+      shift
+      ;;
+    --open)
+      open=true
+      shift
+      ;;
+    --standard-configurations)
+      standard_configurations=true
+      shift
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+if check_true "${standard_configurations-}"; then
+  configurations+=(
+    compileClasspath
+    runtimeClasspath
+    testCompileClasspath
+    testRuntimeClasspath
+  )
+fi
+
+if test "${#PASSTHROUGH_ARGS[@]}" -ne 0 && test "${PASSTHROUGH_ARGS[0]}" = "root"; then
+  deps_type="root"
+  projects=("root")
+elif test "${#PASSTHROUGH_ARGS[@]}" -ne 0 && test -e "${PASSTHROUGH_ARGS[0]}"; then
+  deps_type="${PASSTHROUGH_ARGS[0]}"
+  projects=("${PASSTHROUGH_ARGS[0]}")
+else
+  deps_type="all"
+  projects=("root")
+  mapfile -t -O "${#projects[@]}" projects < <(g_projects_names)
+fi
+
+multi_project=false
+if test "${#projects[@]}" -gt 1; then
+  multi_project=true
+fi
+
+out_dir="build/reports"
+out_file="${out_dir}/deps.${deps_type}.txt"
+if ! test -d "$out_dir"; then
+  mkdir -p "$out_dir"
+fi
+if test -e "${out_file}"; then
+  rm -f "${out_file}"
+fi
+
+out_files=("$out_file")
+
+function run_g_task_for_configs() {
+  local all_args=("${gradle_args[@]}" "$task")
+  if test "${#configurations[@]}" -eq 0; then
+    echo_with_title_sep g "${all_args[@]}"
+    g "${all_args[@]}"
+    return 0
+  fi
+
+  for configuration in "${configurations[@]}"; do
+    all_args_with_config=("${all_args[@]}" --configuration "$configuration")
+    echo_with_title_sep g "${all_args_with_config[@]}"
+    g "${all_args_with_config[@]}"
+  done
+}
+
+for project in "${projects[@]}"; do
+  task=":dependencies"
+  if test "${project-}" != "root"; then
+    task=":${project}${task}"
+  fi
+  if test "${multi_project-}" = "true"; then
+    project_out_file="${out_dir}/deps.${project}.txt"
+    out_files+=("$project_out_file")
+    run_g_task_for_configs | tee -a "${out_file}" | tee "${project_out_file}"
+  else
+    run_g_task_for_configs | tee "${out_file}"
+  fi
+done
+
+echo "File output available at ${out_files[*]}"
+if check_true "${open-}"; then
+  idea "${out_file}"
+fi
+
+exit 0

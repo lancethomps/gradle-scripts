@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+GRADLEW_SCRIPT="gradlew"
+
+function is_arg_present() {
+  local expected_arg arg
+
+  expected_arg="$1"
+  shift
+
+  for arg in "$@"; do
+    if test "${arg}" = "${expected_arg}"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+function find_gradlew_or_gradle() {
+  local git_base_dir
+
+  if test -e "${GRADLEW_SCRIPT}"; then
+    _all_args+=("./${GRADLEW_SCRIPT}")
+    return 0
+  fi
+
+  if git_base_dir="$(git base-dir 2>/dev/null)"; then
+    if test -e "${git_base_dir}/${GRADLEW_SCRIPT}"; then
+      _all_args+=("${git_base_dir}/${GRADLEW_SCRIPT}" -p "$(pwd)")
+      return 0
+    fi
+  fi
+
+  _all_args+=("gradle")
+}
+
+_all_args=()
+find_gradlew_or_gradle
+_all_args+=("$@")
+
+if test "${no_console-}" != "true" && test -t 1 && ! is_arg_present --console "$@"; then
+  _all_args+=(--console verbose)
+fi
+
+if test "${debug_mode-}" = "true"; then
+  echo "${_all_args[*]}"
+  exit 0
+fi
+
+if test "${verbose-}" = "true"; then
+  echo "${_all_args[*]}"
+  echo '-------------------------------------------------------------------------'
+fi
+
+"${_all_args[@]}"

@@ -1,0 +1,14 @@
+# Visual Studio Code
+.vscode/.ropeproject/
+
+# IntelliJ Idea
+.idea/*
+!.idea/runConfigurations/
+!.idea/scopes/
+!.idea/watcherTasks.xml
+*.iml
+*.ipr
+*.iws
+
+# macOS
+.DS_Store
