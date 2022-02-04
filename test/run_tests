@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+S="${BASH_SOURCE[0]}" && while [ -h "$S" ]; do D="$(cd -P "$(dirname "$S")" && pwd)" && S="$(readlink "$S")" && [[ $S != /* ]] && S="$D/$S"; done || true && _SCRIPT_DIR="$(cd -P "$(dirname "$S")" && pwd)" && unset S D
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+exit_val=0
+cd "$_SCRIPT_DIR"
+
+if test "$(uname)" = "Darwin"; then
+  mapfile -d $'\0' -t test_scripts < <(find -Ls "." -type f -perm +111 -not -name run_tests -print0)
+else
+  mapfile -t test_scripts < <(find -L "." -type f -executable -not -name run_tests | sort -u)
+fi
+
+for test_script in "${test_scripts[@]}"; do
+  echo
+  echo "${test_script}"
+  echo "##################################################################################################################################################"
+  if ! "$test_script"; then
+    exit_val=1
+  fi
+  echo "##################################################################################################################################################"
+done
+
+exit "$exit_val"

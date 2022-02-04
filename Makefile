@@ -1,3 +1,3 @@
 include Makefile.common-bash
 
-ci: lint
+ci: lint test-bash
