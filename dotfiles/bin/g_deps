@@ -115,14 +115,14 @@ out_files=("$out_file")
 function run_g_task_for_configs() {
   local all_args=("${gradle_args[@]}" "$task")
   if test "${#configurations[@]}" -eq 0; then
-    echo_with_title_sep g "${all_args[@]}"
+    log_with_title_sep g "${all_args[@]}"
     g "${all_args[@]}"
     return 0
   fi
 
   for configuration in "${configurations[@]}"; do
     all_args_with_config=("${all_args[@]}" --configuration "$configuration")
-    echo_with_title_sep g "${all_args_with_config[@]}"
+    log_with_title_sep g "${all_args_with_config[@]}"
     g "${all_args_with_config[@]}"
   done
 }

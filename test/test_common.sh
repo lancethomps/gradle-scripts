@@ -10,7 +10,7 @@ function test_failed() {
   export exit_val=1
   local test_name="$1"
   shift
-  echo_with_title_sep "FAILED $test_name"
+  log_with_title_sep "FAILED $test_name"
   echo "$*"
 }
 

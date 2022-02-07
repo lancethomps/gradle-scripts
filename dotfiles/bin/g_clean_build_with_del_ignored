@@ -7,10 +7,10 @@ set -o errexit -o errtrace -o nounset
 
 mapfile -t delete_ignored < <(git ignored --directory | pcregrep '(^(\.gradle|build)/$|/(\.gradle|build)/$)')
 if test "${#delete_ignored[@]}" -ne 0; then
-  echo_with_title_sep "Deleting below ignored git directories"
+  log_with_title_sep "Deleting below ignored git directories"
   join_by_newline_with_end "${delete_ignored[@]}"
   rm -rf "${delete_ignored[@]}"
 fi
 
-echo_with_title_sep "Running: g clean build --rerun-tasks $*"
+log_with_title_sep "Running: g clean build --rerun-tasks $*"
 g clean build --rerun-tasks "$@"
