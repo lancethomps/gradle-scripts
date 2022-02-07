@@ -3,11 +3,9 @@
 S="${BASH_SOURCE[0]}" && while [ -h "$S" ]; do D="$(cd -P "$(dirname "$S")" && pwd)" && S="$(readlink "$S")" && [[ $S != /* ]] && S="$D/$S"; done || true && _SCRIPT_DIR="$(cd -P "$(dirname "$S")" && pwd)" && unset S D
 GRADLE_FUNCTIONS_FILE="${_SCRIPT_DIR}/../.dotfiles/gradle_functions.sh"
 
-_GRADLE_ALLOPT_SCRIPTS=(
-  g_deps
-  g_deps_configurations
-  g_resolve_and_lock
-)
+if ! command -v _default_completion >/dev/null 2>&1; then
+  alias _default_completion='complete -o bashdefault -o default'
+fi
 
 function _gradle_allopt() {
   _gradle "$@"
@@ -22,7 +20,8 @@ _GRADLE_FUNCS=(
   g
 )
 
-mapfile -t -O "${#_GRADLE_FUNCS[@]}" _GRADLE_FUNCS < <(list_files_in_path "${HOME}/bin" | xargs basename | pcregrep '^g_')
+mapfile -t -O "${#_GRADLE_FUNCS[@]}" _GRADLE_FUNCS < <(git -C "${_SCRIPT_DIR}/../bin" ls-files -- ':(glob)**/g_*')
+mapfile -t _GRADLE_ALLOPT_SCRIPTS < <(git --no-pager -C "${_SCRIPT_DIR}/../bin" grep --color=never --name-only '(function _usage|^\.g_simple_task)' -- ':(glob)**/g_*' | xargs basename)
 
 if test -e "$GRADLE_FUNCTIONS_FILE" && command -v pcregrep >/dev/null 2>&1; then
   mapfile -t _PARSED_GRADLE_FUNCS < <(pcregrep -o2 -o3 '^(function\s+(.*?)[\s\(\{]|([a-zA-Z0-9_]+)\s*\(\s*\)\s*(\{|$))' "$GRADLE_FUNCTIONS_FILE")
@@ -30,7 +29,10 @@ if test -e "$GRADLE_FUNCTIONS_FILE" && command -v pcregrep >/dev/null 2>&1; then
 fi
 
 _default_completion -F _gradle "${_GRADLE_FUNCS[@]}"
-_default_completion -F _gradle_allopt "${_GRADLE_ALLOPT_SCRIPTS[@]}"
+if test "${#_GRADLE_ALLOPT_SCRIPTS[@]}" -ne 0; then
+  _default_completion -F _gradle_allopt "${_GRADLE_ALLOPT_SCRIPTS[@]}"
+fi
+
 unset _GRADLE_FUNCS _PARSED_GRADLE_FUNCS _GRADLE_ALLOPT_SCRIPTS _SCRIPT_DIR GRADLE_FUNCTIONS_FILE
 
 ##################################################################################################################################################

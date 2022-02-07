@@ -54,7 +54,12 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
+if test -z "${1-}"; then
+  echo "You must pass a task to this command"
+  _usage "$@"
+  exit 1
+fi
+
 cd_to_git_base_dir_if_needed
 
-g "${PASSTHROUGH_ARGS[@]}" resolveAndLockAll --write-locks
-git --no-pager diff-csv --color=always -- ':(glob)**/*.lockfile'
+g -q taskTree "${PASSTHROUGH_ARGS[@]}"

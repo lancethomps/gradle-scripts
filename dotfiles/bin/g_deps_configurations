@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-set -o errexit -o errtrace -o nounset
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.gradle_command_defaults.sh
+source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
 ################################################################### USAGE ########################################################################
@@ -15,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--unique] <args>...
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--unique] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -40,6 +42,10 @@ while test $# -gt 0; do
       export verbose=true
       shift
       ;;
+    --cd-to-git-base-dir)
+      cd_to_git_base_dir=true
+      shift
+      ;;
     --unique)
       unique=true
       shift
@@ -52,8 +58,10 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
+cd_to_git_base_dir_if_needed
+
 function get_all_configs() {
-  g projects --info | pcregrep --om-separator=' ' -o2 -o1 "Applying dependency management to configuration '(.*?)' in project '(.*?)'"
+  g projects --info "${PASSTHROUGH_ARGS[@]}" | pcregrep --om-separator=' ' -o2 -o1 "Applying dependency management to configuration '(.*?)' in project '(.*?)'"
 }
 
 if test "${unique-}" = "true"; then

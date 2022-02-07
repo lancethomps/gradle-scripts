@@ -6,8 +6,6 @@ source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
 ################################################################### USAGE ########################################################################
-_SCRIPT_NAME="$(basename "$0")"
-
 function _usage() {
   local SYNOP_INDENT
   SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
@@ -56,5 +54,4 @@ done
 
 cd_to_git_base_dir_if_needed
 
-g "${PASSTHROUGH_ARGS[@]}" resolveAndLockAll --write-locks
-git --no-pager diff-csv --color=always -- ':(glob)**/*.lockfile'
+g "${PASSTHROUGH_ARGS[@]}"

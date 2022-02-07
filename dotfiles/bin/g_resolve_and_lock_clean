@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-set -o errexit -o errtrace -o nounset
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.gradle_command_defaults.sh
+source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
 ################################################################### USAGE ########################################################################
@@ -15,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir]
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -52,9 +54,7 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-if test "${cd_to_git_base_dir-}" = "true"; then
-  cd "$(git base-dir)"
-fi
+cd_to_git_base_dir_if_needed
 
 git ls-files -- ':(glob)**/*.lockfile' | xargs rm -fv
 g_resolve_and_lock clean "${PASSTHROUGH_ARGS[@]}"
