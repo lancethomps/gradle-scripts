@@ -54,7 +54,7 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-if test -z "${1-}"; then
+if test "${#PASSTHROUGH_ARGS[@]}" -eq 0; then
   echo "You must pass a task to this command"
   _usage "$@"
   exit 1
