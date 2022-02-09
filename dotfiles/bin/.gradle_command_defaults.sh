@@ -29,7 +29,7 @@ function repeat_char() {
 }
 function get_sep_cols() {
   local sep_cols=160 term_cols
-  if check_command get_terminal_columns; then
+  if command -v get_terminal_columns >/dev/null 2>&1; then
     term_cols="$(get_terminal_columns)"
     if test -n "$term_cols"; then
       sep_cols="$term_cols"
@@ -63,6 +63,23 @@ function log_with_title_sep() {
 function log_with_title_sep_no_leading_blank_line() {
   echo "$@"
   log_sep
+}
+function join_by() {
+  local d="$1"
+  shift
+  echo -n "$1"
+  shift
+  printf "%s" "${@/#/$d}"
+}
+function join_by_newline() {
+  join_by $'\n' "$@"
+}
+function join_by_newline_with_end() {
+  join_by_newline "$@"
+  echo
+}
+function join_by_regex_or() {
+  echo "($(join_by '|' "$@"))"
 }
 function exit_fatal() {
   local exit_code="${1-}"
