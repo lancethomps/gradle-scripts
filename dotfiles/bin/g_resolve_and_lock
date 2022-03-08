@@ -57,4 +57,4 @@ done
 cd_to_git_base_dir_if_needed
 
 g "${PASSTHROUGH_ARGS[@]}" resolveAndLockAll --write-locks
-git --no-pager diff --color=always --color-words -w --word-diff-regex="[^[:space:],:=]+" -- ':(glob)**/*.lockfile'
+git diff-gradle-lockfiles

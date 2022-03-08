@@ -1,9 +1,27 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-set -o errexit -o errtrace -o nounset
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.gradle_command_defaults.sh
+source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
 GRADLEW_SCRIPT="gradlew"
+
+################################################################# FILTERARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    --cd-to-git-base-dir)
+      cd_to_git_base_dir=true
+      shift
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
 
 function is_arg_present() {
   local expected_arg arg
@@ -38,11 +56,12 @@ function find_gradlew_or_gradle() {
   _all_args+=("gradle")
 }
 
+cd_to_git_base_dir_if_needed
 _all_args=()
 find_gradlew_or_gradle
-_all_args+=("$@")
+_all_args+=("${PASSTHROUGH_ARGS[@]}")
 
-if test "${no_console-}" != "true" && test -t 1 && ! is_arg_present --console "$@"; then
+if test "${no_console-}" != "true" && test -t 1 && ! is_arg_present --console "${PASSTHROUGH_ARGS[@]}"; then
   _all_args+=(--console verbose)
 fi
 
