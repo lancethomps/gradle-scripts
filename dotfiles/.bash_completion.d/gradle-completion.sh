@@ -20,6 +20,10 @@ _GRADLE_FUNCS=(
   g
 )
 
+if test -n "${_CUSTOM_GRADLE_FUNDS-}"; then
+  _GRADLE_FUNCS+=("${_CUSTOM_GRADLE_FUNDS[@]}")
+fi
+
 mapfile -t -O "${#_GRADLE_FUNCS[@]}" _GRADLE_FUNCS < <(git -C "${_SCRIPT_DIR}/../bin" ls-files -- ':(glob)**/g_*')
 mapfile -t _GRADLE_ALLOPT_SCRIPTS < <(git --no-pager -C "${_SCRIPT_DIR}/../bin" grep --color=never --name-only '(function _usage|^\.g_simple_task)' -- ':(glob)**/g_*' | xargs basename)
 
@@ -33,7 +37,7 @@ if test "${#_GRADLE_ALLOPT_SCRIPTS[@]}" -ne 0; then
   _default_completion -F _gradle_allopt "${_GRADLE_ALLOPT_SCRIPTS[@]}"
 fi
 
-unset _GRADLE_FUNCS _PARSED_GRADLE_FUNCS _GRADLE_ALLOPT_SCRIPTS _SCRIPT_DIR GRADLE_FUNCTIONS_FILE
+unset _GRADLE_FUNCS _CUSTOM_GRADLE_FUNDS _PARSED_GRADLE_FUNCS _GRADLE_ALLOPT_SCRIPTS _SCRIPT_DIR GRADLE_FUNCTIONS_FILE
 
 ##################################################################################################################################################
 ################################################################### gradle-completion fixes ######################################################
