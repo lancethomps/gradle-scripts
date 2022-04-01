@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+function main() {
+  local git_grep_args
+
+  git_grep_args=(
+    "$@"
+    --
+    ":(glob)**/*.gradle.kts"
+    ":(glob)**/gradle.properties"
+    ":(glob)**/*.versions.toml"
+  )
+
+  if command -v git-grep-fzf >/dev/null 2>&1; then
+    git grep-fzf "${git_grep_args[@]}"
+  else
+    git grep "${git_grep_args[@]}"
+  fi
+}
+
+main "$@"
