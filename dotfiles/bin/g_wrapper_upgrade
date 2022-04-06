@@ -4,3 +4,9 @@ set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
 
 gradle wrapper --distribution-type ALL "$@"
+
+if git check-ignore --quiet gradlew.bat; then
+  rm -f gradlew.bat
+fi
+
+exit 0
