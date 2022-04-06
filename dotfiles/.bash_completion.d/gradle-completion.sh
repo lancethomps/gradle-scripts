@@ -20,16 +20,21 @@ _GRADLE_FUNCS=(
   g
 )
 
-if test -n "${_CUSTOM_GRADLE_FUNDS-}"; then
-  _GRADLE_FUNCS+=("${_CUSTOM_GRADLE_FUNDS[@]}")
+if test -n "${_CUSTOM_GRADLE_FUNCS-}"; then
+  _GRADLE_FUNCS+=("${_CUSTOM_GRADLE_FUNCS[@]}")
 fi
 
 mapfile -t -O "${#_GRADLE_FUNCS[@]}" _GRADLE_FUNCS < <(git -C "${_SCRIPT_DIR}/../bin" ls-files -- ':(glob)**/g_*')
-mapfile -t _GRADLE_ALLOPT_SCRIPTS < <(git --no-pager -C "${_SCRIPT_DIR}/../bin" grep --color=never --name-only '(function _usage|^\.g_simple_task)' -- ':(glob)**/g_*' | xargs basename)
 
 if test -e "$GRADLE_FUNCTIONS_FILE" && command -v pcregrep >/dev/null 2>&1; then
   mapfile -t _PARSED_GRADLE_FUNCS < <(pcregrep -o2 -o3 '^(function\s+(.*?)[\s\(\{]|([a-zA-Z0-9_]+)\s*\(\s*\)\s*(\{|$))' "$GRADLE_FUNCTIONS_FILE")
   _GRADLE_FUNCS+=("${_PARSED_GRADLE_FUNCS[@]}")
+fi
+
+mapfile -t _GRADLE_ALLOPT_SCRIPTS < <(git --no-pager -C "${_SCRIPT_DIR}/../bin" grep --color=never --name-only '(function _usage|^\.g_simple_task)' -- ':(glob)**/g_*' | xargs basename)
+
+if test -n "${_CUSTOM_GRADLE_ALLOPT_SCRIPTS-}"; then
+  _GRADLE_ALLOPT_SCRIPTS+=("${_CUSTOM_GRADLE_ALLOPT_SCRIPTS[@]}")
 fi
 
 _default_completion -F _gradle "${_GRADLE_FUNCS[@]}"
@@ -37,7 +42,7 @@ if test "${#_GRADLE_ALLOPT_SCRIPTS[@]}" -ne 0; then
   _default_completion -F _gradle_allopt "${_GRADLE_ALLOPT_SCRIPTS[@]}"
 fi
 
-unset _GRADLE_FUNCS _CUSTOM_GRADLE_FUNDS _PARSED_GRADLE_FUNCS _GRADLE_ALLOPT_SCRIPTS _SCRIPT_DIR GRADLE_FUNCTIONS_FILE
+unset _GRADLE_FUNCS _CUSTOM_GRADLE_FUNCS _PARSED_GRADLE_FUNCS _GRADLE_ALLOPT_SCRIPTS _SCRIPT_DIR GRADLE_FUNCTIONS_FILE
 
 ##################################################################################################################################################
 ################################################################### gradle-completion fixes ######################################################
