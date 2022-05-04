@@ -16,5 +16,9 @@ lint-bash::
 
 lint:: check-bash lint-bash
 
+lint-fix:: format-bash
+
 test-bash::
 	test/run_tests
+
+ci-bash:: lint test-bash

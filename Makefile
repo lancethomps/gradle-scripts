@@ -1,4 +1,7 @@
 include Makefile.common
 include Makefile.common-bash
 
-ci: lint test-bash
+ci: ci-bash
+
+setup:
+	./setup.sh
