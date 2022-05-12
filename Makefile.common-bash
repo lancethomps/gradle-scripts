@@ -5,7 +5,7 @@ check-bash::
 	# Fail if any shellcheck warnings
 	@shellcheck --source-path "$(dir $(realpath $(firstword $(MAKEFILE_LIST))))dotfiles" $(BASH_SCRIPTS)
 
-format-bash::
+lint-fix-bash::
 	@shfmt -s -i 2 -ci -l $(BASH_SCRIPTS_ALL)
 	@shfmt -s -i 2 -ci -w $(BASH_SCRIPTS_ALL)
 
@@ -16,7 +16,7 @@ lint-bash::
 
 lint:: check-bash lint-bash
 
-lint-fix:: format-bash
+lint-fix:: lint-fix-bash
 
 test-bash::
 	test/run_tests
