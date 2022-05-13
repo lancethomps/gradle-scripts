@@ -62,4 +62,4 @@ fi
 
 cd_to_git_base_dir_if_needed
 
-g -q taskTree "${PASSTHROUGH_ARGS[@]}"
+log_and_run g -q taskTree "${PASSTHROUGH_ARGS[@]}"

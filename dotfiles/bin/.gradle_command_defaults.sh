@@ -64,6 +64,14 @@ function log_with_title_sep_no_leading_blank_line() {
   echo "$@"
   log_sep
 }
+function log_and_run() {
+  log_with_title_sep_no_leading_blank_line "$*" >&2
+  "$@"
+}
+function log_and_run_spaced() {
+  log_with_title_sep "$*" >&2
+  "$@"
+}
 function join_by() {
   local d="$1"
   shift
