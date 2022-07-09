@@ -120,3 +120,64 @@ __gradle-generate-tasks-cache() {
   printf "%s\n" "${gradle_all_tasks[@]}" >|"$cache_dir/$gradle_files_checksum"
   echo "$gradle_files_checksum" >|"$cache_dir/$cache_name.md5"
 }
+
+__gradle-long-options() {
+  local cur
+  _get_comp_words_by_ref -n : cur
+
+  local args="--build-cache           - Enables the Gradle build cache
+--build-file            - Specifies the build file
+--configuration-cache   - Enables the configuration cache. Gradle will try to reuse the build configuration from previous builds. [incubating]
+--configuration-cache-problems - Configures how the configuration cache handles problems (fail or warn). Defaults to fail. [incubating]
+--configure-on-demand   - Only relevant projects are configured
+--console               - Type of console output to generate (plain auto rich verbose)
+--continue              - Continues task execution after a task failure
+--continuous            - Continuous mode. Automatically re-run build after changes
+--daemon                - Use the Gradle Daemon
+--debug                 - Log at the debug level
+--dry-run               - Runs the build with all task actions disabled
+--exclude-task          - Specify a task to be excluded
+--fail-fast             - Stop tests after first failure
+--full-stacktrace       - Print out the full (very verbose) stacktrace
+--gradle-user-home      - Specifies the Gradle user home directory
+--gui                   - Launches the Gradle GUI app (Deprecated)
+--help                  - Shows a help message
+--include-build         - Run the build as a composite, including the specified build
+--info                  - Set log level to INFO
+--init-script           - Specifies an initialization script
+--max-workers           - Set the maximum number of workers that Gradle may use
+--no-build-cache        - Do not use the Gradle build cache
+--no-configuration-cache  - Disables the configuration cache. [incubating]
+--no-configure-on-demand  - Disables configuration on demand
+--no-daemon             - Do not use the Gradle Daemon
+--no-parallel           - Disables parallel execution to build projects
+--no-rebuild            - Do not rebuild project dependencies
+--no-scan               - Do not create a build scan
+--no-search-upwards     - Do not search parent directories for a settings.gradle (removed)
+--no-watch-fs           - Do not watch the filesystem for changes
+--offline               - Build without accessing network resources
+--parallel              - Build projects in parallel
+--profile               - Profile build time and create report
+--priority              - Set priority for Gradle worker processes (low normal)
+--project-cache-dir     - Specifies the project-specific cache directory
+--project-dir           - Specifies the start directory for Gradle
+--project-prop          - Sets a project property of the root project
+--quiet                 - Log errors only
+--recompile-scripts     - Forces scripts to be recompiled, bypassing caching
+--refresh-dependencies  - Refresh the state of dependencies
+--rerun-tasks           - Specifies that any task optimization is ignored
+--scan                  - Create a build scan
+--settings-file         - Specifies the settings file
+--stacktrace            - Print out the stacktrace also for user exceptions
+--status                - Print Gradle Daemon status
+--stop                  - Stop all Gradle Daemons
+--system-prop           - Set a system property
+--update-locks          - Perform a partial update of the dependency lock
+--version               - Prints Gradle version info
+--warn                  - Log warnings and errors only
+--warning-mode          - Set types of warnings to log (all summary none)
+--watch-fs              - Gradle watches filesystem for incremental builds
+--write-locks           - Persists dependency resolution for locked configurations"
+
+  COMPREPLY=($(compgen -W "$args" -- "$cur"))
+}
