@@ -181,3 +181,32 @@ __gradle-long-options() {
 
   COMPREPLY=($(compgen -W "$args" -- "$cur"))
 }
+
+__gradle-short-options() {
+  local cur
+  _get_comp_words_by_ref -n : cur
+
+  local args="-?                      - Shows a help message
+-a                      - Do not rebuild project dependencies
+-b                      - Specifies the build file
+-c                      - Specifies the settings file
+-d                      - Log at the debug level
+-g                      - Specifies the Gradle user home directory
+-h                      - Shows a help message
+-i                      - Set log level to INFO
+-m                      - Runs the build with all task actions disabled
+-p                      - Specifies the start directory for Gradle
+-q                      - Log errors only
+-s                      - Print out the stacktrace also for user exceptions
+-t                      - Continuous mode. Automatically re-run build after changes
+-u                      - Do not search parent directories for a settings.gradle
+-v                      - Prints Gradle version info
+-w                      - Log warnings and errors only
+-x                      - Specify a task to be excluded
+-D                      - Set a system property
+-I                      - Specifies an initialization script
+-P                      - Sets a project property of the root project
+-S                      - Print out the full (very verbose) stacktrace
+-Prerun"
+  COMPREPLY=($(compgen -W "$args" -- "$cur"))
+}
