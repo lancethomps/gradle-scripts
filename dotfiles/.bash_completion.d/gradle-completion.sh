@@ -137,7 +137,6 @@ __gradle-long-options() {
 --debug                 - Log at the debug level
 --dry-run               - Runs the build with all task actions disabled
 --exclude-task          - Specify a task to be excluded
---fail-fast             - Stop tests after first failure
 --full-stacktrace       - Print out the full (very verbose) stacktrace
 --gradle-user-home      - Specifies the Gradle user home directory
 --gui                   - Launches the Gradle GUI app (Deprecated)
@@ -177,7 +176,10 @@ __gradle-long-options() {
 --warn                  - Log warnings and errors only
 --warning-mode          - Set types of warnings to log (all summary none)
 --watch-fs              - Gradle watches filesystem for incremental builds
---write-locks           - Persists dependency resolution for locked configurations"
+--write-locks           - Persists dependency resolution for locked configurations
+--fail-fast             - CUSTOM Stop tests after first failure
+--tests                 - CUSTOM define tests
+"
 
   COMPREPLY=($(compgen -W "$args" -- "$cur"))
 }
