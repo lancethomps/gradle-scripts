@@ -57,8 +57,7 @@ done
 function main() {
   cd_to_git_base_dir_if_needed
 
-  log_with_title_sep "Running: g clean build --rerun-tasks $*"
-  g clean build --rerun-tasks "$@"
+  log_and_run g clean build --rerun-tasks "$@"
 }
 
-main "$@"
+main "${PASSTHROUGH_ARGS[@]}"
