@@ -87,11 +87,12 @@ function log_and_run_spaced() {
   "$@"
 }
 function join_by() {
-  local d="$1"
+  local delim="${1//\&/\\&}"
   shift
+
   echo -n "$1"
   shift
-  printf "%s" "${@/#/$d}"
+  printf "%s" "${@/#/$delim}"
 }
 function join_by_newline() {
   join_by $'\n' "$@"
