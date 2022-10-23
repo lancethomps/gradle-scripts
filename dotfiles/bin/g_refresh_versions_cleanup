@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.gradle_command_defaults.sh
+source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
+##################################################################################################################################################
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] <gradle_arg>...
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# FILTERARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --cd-to-git-base-dir)
+      cd_to_git_base_dir=true
+      shift
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function main() {
+  cd_to_git_base_dir_if_needed
+
+  g refreshVersionsCleanup "$@"
+}
+
+main "${PASSTHROUGH_ARGS[@]}"
