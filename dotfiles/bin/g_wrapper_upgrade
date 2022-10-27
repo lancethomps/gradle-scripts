@@ -1,12 +1,32 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-set -o errexit -o errtrace -o nounset
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.gradle_command_defaults.sh
+source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
-gradle wrapper --distribution-type ALL "$@"
+function main() {
+  local gradle_args=(--distribution-type ALL "$@")
 
-if git check-ignore --quiet gradlew.bat; then
-  rm -f gradlew.bat
-fi
+  if ! is_arg_present --gradle-version "${gradle_args[@]}"; then
+    if command -v gradle_release_versions >/dev/null 2>&1; then
+      local latest_version
+      echo "No --gradle-version specified, finding the latest..."
+      latest_version="$(gradle_release_versions | head -1)"
+      echo "Using --gradle-version=${latest_version}"
+      gradle_args+=(--gradle-version "$latest_version")
+    else
+      exit_fatal "No --gradle-version specified"
+    fi
+  fi
 
-exit 0
+  log_and_run gradle wrapper "${gradle_args[@]}"
+
+  if git check-ignore --quiet gradlew.bat; then
+    rm -f gradlew.bat
+  fi
+
+  return 0
+}
+
+main "$@"
