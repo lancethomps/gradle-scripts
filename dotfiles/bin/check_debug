@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-check_true "${debug_mode-}"

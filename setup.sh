@@ -6,7 +6,7 @@ source "${_SCRIPT_DIR}/dotfiles/bin/.common_copy.sh" || exit 1
 ##################################################################################################################################################
 
 function install_brew() {
-  BREW_FORMULAS=(
+  local BREW_FORMULAS=(
     coreutils
     fzf
     gawk

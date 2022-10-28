@@ -146,7 +146,7 @@ function log_and_run_spaced() {
   "$@"
 }
 function log_and_run_no_sep() {
-  echo "$(get_args_quoted "$@")" >&2
+  get_args_quoted "$@" >&2
   "$@"
 }
 function log_verbose_and_run() {
