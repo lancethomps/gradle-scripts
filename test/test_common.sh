@@ -3,7 +3,7 @@
 S="${BASH_SOURCE[0]}" && while [ -h "$S" ]; do D="$(cd -P "$(dirname "$S")" && pwd)" && S="$(readlink "$S")" && [[ $S != /* ]] && S="$D/$S"; done || true && _SCRIPT_DIR="$(cd -P "$(dirname "$S")" && pwd)" && unset S D
 export PATH="${_SCRIPT_DIR}/../dotfiles/bin:${PATH}"
 # shellcheck disable=SC1090
-source "${_SCRIPT_DIR}/../dotfiles/bin/.git_scripts_common_copy.sh"
+source "${_SCRIPT_DIR}/../dotfiles/bin/.common_copy.sh"
 ##################################################################################################################################################
 
 function test_failed() {

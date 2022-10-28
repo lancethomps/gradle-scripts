@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
 if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
-# shellcheck source=./.gradle_command_defaults.sh
-source "${_SCRIPT_DIR}/.gradle_command_defaults.sh" || exit 1
+# shellcheck source=./.command_defaults.sh
+source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
 function main() {

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+# BASH_COMPLETION_USING_HELP
+
+function main() {
+  local curl_args=(--user "${JENKINS_USER_ID}:${JENKINS_API_TOKEN}" --silent "$@")
+
+  if check_debug; then
+    echo curl "${curl_args[@]}"
+  else
+    curl "${curl_args[@]}"
+  fi
+}
+
+main "$@"
