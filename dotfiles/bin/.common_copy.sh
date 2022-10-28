@@ -316,6 +316,18 @@ function join_by_regex_or() {
   echo "($(join_by '|' "$@"))"
 }
 
+function url_decode_py() {
+  python -c '
+import sys
+try:
+  import urllib.parse as urllib_parse
+except:
+  import urllib as urllib_parse
+
+print(urllib_parse.unquote_plus(sys.argv[1]))
+' "$@"
+}
+
 function url_encode_py() {
   python -c '
 import sys
