@@ -54,14 +54,17 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
+function main() {
+  cd_to_git_base_dir_if_needed
 
-mapfile -t delete_ignored < <(git ls-files --others --ignored --exclude-standard --directory | pcregrep '(^(\.gradle|build)/$|/(\.gradle|build)/$)')
-if test "${#delete_ignored[@]}" -ne 0; then
-  log_with_title_sep "Deleting below ignored git directories"
-  join_by_newline_with_end "${delete_ignored[@]}"
-  rm -rf "${delete_ignored[@]}"
-fi
+  mapfile -t delete_ignored < <(git ls-files --others --ignored --exclude-standard --directory | pcregrep '(^(\.gradle|build)/$|/(\.gradle|build)/$)')
+  if test "${#delete_ignored[@]}" -ne 0; then
+    log_with_title_sep "Deleting below ignored git directories"
+    join_by_newline_with_end "${delete_ignored[@]}"
+    rm -rf "${delete_ignored[@]}"
+  fi
 
-log_with_title_sep "Running: g clean build --rerun-tasks $*"
-g clean build --rerun-tasks "$@"
+  log_and_run g clean build --rerun-tasks "$@"
+}
+
+main "$@"

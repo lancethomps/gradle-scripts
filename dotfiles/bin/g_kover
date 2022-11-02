@@ -58,12 +58,16 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
+function main() {
+  cd_to_git_base_dir_if_needed
 
-g "${PASSTHROUGH_ARGS[@]}" koverMergedHtmlReport
+  log_and_run g "${PASSTHROUGH_ARGS[@]}" koverMergedHtmlReport
 
-if ! check_true "${no_open-}"; then
-  open build/reports/kover/merged/html/index.html
-fi
+  if ! check_true "${no_open-}"; then
+    open build/reports/kover/merged/html/index.html
+  fi
 
-exit 0
+  exit 0
+}
+
+main "$@"

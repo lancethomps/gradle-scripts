@@ -58,14 +58,18 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
-
 function get_all_configs() {
   g projects --info "${PASSTHROUGH_ARGS[@]}" | pcregrep --buffer-size=2000k --om-separator=' ' -o2 -o1 "Applying dependency management to configuration '(.*?)' in project '(.*?)'"
 }
 
-if test "${unique-}" = "true"; then
-  get_all_configs | awk '{ print $2 }' | sort -u
-else
-  get_all_configs | awk '{ printf "%-20s %s\n", $1, $2 }' | sort
-fi
+function main() {
+  cd_to_git_base_dir_if_needed
+
+  if test "${unique-}" = "true"; then
+    get_all_configs | awk '{ print $2 }' | sort -u
+  else
+    get_all_configs | awk '{ printf "%-20s %s\n", $1, $2 }' | sort
+  fi
+}
+
+main

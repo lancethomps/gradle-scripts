@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.common_copy.sh
+source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
 set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
 
 function main() {
-  g -q --console plain buildEnvironment "$@"
+  log_and_run g -q --console plain buildEnvironment "$@"
 }
 
 main "$@"

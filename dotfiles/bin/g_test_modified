@@ -131,7 +131,7 @@ function main() {
     gradle_args+=(--tests "$modified_test")
   done
 
-  gradle_args+=("${PASSTHROUGH_ARGS[@]}")
+  gradle_args+=("$@")
 
   log_and_run g "${gradle_args[@]}"
 }

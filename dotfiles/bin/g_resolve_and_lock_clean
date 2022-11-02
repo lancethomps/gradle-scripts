@@ -54,7 +54,11 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
+function main() {
+  cd_to_git_base_dir_if_needed
 
-git ls-files -- ':(glob)**/*.lockfile' | xargs rm -fv
-g_resolve_and_lock clean "${PASSTHROUGH_ARGS[@]}"
+  git ls-files -- ':(glob)**/*.lockfile' | xargs rm -fv
+  g_resolve_and_lock clean "${PASSTHROUGH_ARGS[@]}"
+}
+
+main

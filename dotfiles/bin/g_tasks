@@ -54,6 +54,10 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
+function main() {
+  cd_to_git_base_dir_if_needed
 
-g -q tasks --all "${PASSTHROUGH_ARGS[@]}"
+  log_and_run g -q tasks --all "${PASSTHROUGH_ARGS[@]}"
+}
+
+main

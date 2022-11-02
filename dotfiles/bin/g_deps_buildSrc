@@ -54,18 +54,24 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-cd_to_git_base_dir_if_needed
+function main() {
+  local out_dir out_file g_args
 
-out_dir="build/reports"
-out_file="${out_dir}/deps.buildSrc.txt"
-if ! test -d "$out_dir"; then
-  mkdir -p "$out_dir"
-fi
+  cd_to_git_base_dir_if_needed
 
-g_args=(-q)
+  out_dir="build/reports"
+  out_file="${out_dir}/deps.buildSrc.txt"
+  if ! test -d "$out_dir"; then
+    mkdir -p "$out_dir"
+  fi
 
-if test "$(basename "$(pwd)")" != "buildSrc"; then
-  g_args+=(-p buildSrc)
-fi
+  g_args=(-q)
 
-g "${g_args[@]}" dependencies "${PASSTHROUGH_ARGS[@]}" | tee "${out_file}"
+  if test "$(basename "$(pwd)")" != "buildSrc"; then
+    g_args+=(-p buildSrc)
+  fi
+
+  log_and_run g "${g_args[@]}" dependencies "${PASSTHROUGH_ARGS[@]}" | tee "${out_file}"
+}
+
+main

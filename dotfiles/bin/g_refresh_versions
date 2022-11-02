@@ -57,7 +57,7 @@ done
 function main() {
   cd_to_git_base_dir_if_needed
 
-  g refreshVersions "$@"
+  log_and_run g refreshVersions "$@"
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
