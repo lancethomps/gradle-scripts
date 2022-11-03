@@ -21,7 +21,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--no-open] <gradle_arg>...
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--always-open | --no-open] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -44,6 +44,10 @@ while test $# -gt 0; do
       ;;
     --verbose)
       export verbose=true
+      shift
+      ;;
+    --always-open)
+      always_open=true
       shift
       ;;
     --cd-to-git-base-dir)
@@ -71,7 +75,7 @@ function open_files() {
 
   for open_file in "${OPEN_FILES[@]}"; do
     if test -e "$open_file"; then
-      log_and_run open "$open_file"
+      log_and_run_no_sep open "$open_file"
     else
       log_stderr "File to open does not exist: $open_file"
     fi
@@ -89,10 +93,17 @@ function main() {
   test "$exit_code" -eq 130 && exit "$exit_code"
 
   if command -v prettify_file >/dev/null 2>&1; then
-    log_and_run prettify_file build/reports/dependency-check-report.json
+    log_and_run_no_sep prettify_file build/reports/dependency-check-report.json
   fi
 
-  open_files
+  if check_true "${always_open-}"; then
+    open_files
+  elif test "$exit_code" -ne 0; then
+    open_files
+  else
+    log_stderr "Not opening HTML report because the check passed and --always-open was not set."
+  fi
+
   return "$exit_code"
 }
 

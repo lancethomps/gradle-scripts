@@ -85,7 +85,7 @@ function main() {
   cd_to_git_base_dir_if_needed
 
   set +o errexit
-  log_and_run g "$@" dependencyCheckAggregate koverMergedHtmlReport projectReport
+  log_and_run g --continue "$@" dependencyCheckAggregate koverMergedHtmlReport projectReport
   exit_code=$?
   set -o errexit
   test "$exit_code" -eq 130 && exit "$exit_code"
