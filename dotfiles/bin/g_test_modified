@@ -91,7 +91,7 @@ function pull_modified_tests() {
     return $?
   fi
 
-  mapfile -t all_projects < <("${_SCRIPT_DIR}/g_projects_names")
+  mapfile -t all_projects < <("${_SCRIPT_DIR}/g_project_names")
 
   for test_file in "${modified_tests_files[@]}"; do
     test_name="$(basename "$test_file" | cut -f 1 -d '.')"

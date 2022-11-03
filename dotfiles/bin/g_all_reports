@@ -5,6 +5,12 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
+OPEN_FILES=(
+  build/reports/dependency-check-report.html
+  build/reports/kover/merged/html/index.html
+  build/reports/project/dependencies/index.html
+)
+
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
 
@@ -17,7 +23,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] <gradle_arg>...
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--no-open] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -46,6 +52,10 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --no-open)
+      no_open=true
+      shift
+      ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
       shift
@@ -54,10 +64,44 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
+function open_files() {
+  local open_file
+
+  if check_true "${no_open-}"; then
+    return 0
+  fi
+
+  for open_file in "${OPEN_FILES[@]}"; do
+    if test -e "$open_file"; then
+      log_and_run open "$open_file"
+    else
+      log_stderr "File to open does not exist: $open_file"
+    fi
+  done
+}
+
 function main() {
+  local exit_code
   cd_to_git_base_dir_if_needed
 
-  log_and_run g "$@" publishToMavenLocal
+  set +o errexit
+  log_and_run g "$@" dependencyCheckAggregate koverMergedHtmlReport projectReport
+  exit_code=$?
+  set -o errexit
+  test "$exit_code" -eq 130 && exit "$exit_code"
+
+  if command -v prettify_file >/dev/null 2>&1; then
+    local files_to_prettify
+    mapfile -d $'\0' -t files_to_prettify < <(find -Ls "build/reports/" -type f \( -iname '*.json' -o -iname '*.xml' \) -print0)
+    if test "${#files_to_prettify[@]}" -eq 0; then
+      log_stderr "No files to prettify"
+    else
+      log_and_run prettify_file "${files_to_prettify[@]}"
+    fi
+  fi
+
+  open_files
+  return "$exit_code"
 }
 
 main "${PASSTHROUGH_ARGS[@]}"

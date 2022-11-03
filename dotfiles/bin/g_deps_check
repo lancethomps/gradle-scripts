@@ -1,6 +1,99 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
-set -o errexit -o errtrace -o nounset
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.command_defaults.sh
+source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
-_SCRIPT_NAME="$(basename "$0")" .g_simple_task "$@" dependencyCheckAggregate
+OPEN_FILES=(
+  build/reports/dependency-check-report.html
+)
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--no-open] <gradle_arg>...
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# FILTERARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --cd-to-git-base-dir)
+      cd_to_git_base_dir=true
+      shift
+      ;;
+    --no-open)
+      no_open=true
+      shift
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function open_files() {
+  local open_file
+
+  if check_true "${no_open-}"; then
+    return 0
+  fi
+
+  for open_file in "${OPEN_FILES[@]}"; do
+    if test -e "$open_file"; then
+      log_and_run open "$open_file"
+    else
+      log_stderr "File to open does not exist: $open_file"
+    fi
+  done
+}
+
+function main() {
+  local exit_code
+  cd_to_git_base_dir_if_needed
+
+  set +o errexit
+  log_and_run g "$@" dependencyCheckAggregate
+  exit_code=$?
+  set -o errexit
+  test "$exit_code" -eq 130 && exit "$exit_code"
+
+  if command -v prettify_file >/dev/null 2>&1; then
+    log_and_run prettify_file build/reports/dependency-check-report.json
+  fi
+
+  open_files
+  return "$exit_code"
+}
+
+main "${PASSTHROUGH_ARGS[@]}"

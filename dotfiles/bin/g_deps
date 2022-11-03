@@ -97,7 +97,7 @@ elif test "${#PASSTHROUGH_ARGS[@]}" -ne 0 && test -e "${PASSTHROUGH_ARGS[0]}"; t
 else
   deps_type="all"
   projects=("root")
-  mapfile -t -O "${#projects[@]}" projects < <(g_projects_names)
+  mapfile -t -O "${#projects[@]}" projects < <(g_project_names)
 fi
 
 multi_project=false
