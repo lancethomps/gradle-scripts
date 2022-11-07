@@ -54,4 +54,4 @@ done
 
 cd_to_git_base_dir_if_needed
 
-g "${PASSTHROUGH_ARGS[@]}"
+log_and_run g "${PASSTHROUGH_ARGS[@]}"

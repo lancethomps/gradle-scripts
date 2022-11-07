@@ -141,6 +141,18 @@ function log_and_run() {
   log_with_title_sep_no_leading_blank_line "$(get_args_quoted "$@")" >&2
   "$@"
 }
+function log_and_run_surround() {
+  local exit_code
+
+  set +o errexit
+  log_and_run "$@"
+  exit_code=$?
+  set -o errexit
+
+  log_sep
+
+  return "$exit_code"
+}
 function log_and_run_spaced() {
   log_with_title_sep "$(get_args_quoted "$@")" >&2
   "$@"
