@@ -81,7 +81,7 @@ function open_files() {
 function main() {
   cd_to_git_base_dir_if_needed
 
-  log_and_run g "$@" koverMergedHtmlReport
+  log_and_run g "$@" koverMergedReport
   open_files
 }
 
