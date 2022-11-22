@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.common_copy.sh
+source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--no-delete]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# SCRIPTARGS #####################################################################
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --no-delete)
+      no_delete=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      _usage
+      exit 1
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function run_find() {
+  log_and_run find "${HOME}/.gradle" -name '*.lock'
+}
+
+function main() {
+  local lock_files
+
+  if check_true "${no_delete-}"; then
+    run_find
+    return 0
+  fi
+
+  mapfile -t lock_files < <(run_find)
+
+  if test "${#lock_files[@]}" -eq 0; then
+    echo "No locks found"
+    return 0
+  fi
+
+  log_with_title_sep "Lock Files"
+  join_by_newline_with_end "${lock_files[@]}"
+  log_sep
+
+  if confirm_with_auto "Delete above locks?"; then
+    log_and_run rm -v "${lock_files[@]}"
+  else
+    return 1
+  fi
+}
+
+main "$@"
