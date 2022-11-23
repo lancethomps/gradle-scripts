@@ -5,8 +5,7 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
-OPEN_FILES_DIR='build/reports'
-OPEN_FILES_MATCHER='spotbugs_*.html'
+declare -x profiling_sub_dir
 
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
@@ -53,6 +52,12 @@ while test $# -gt 0; do
       no_open=true
       shift
       ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
       shift
@@ -61,39 +66,57 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-function should_open_file() {
-  local open_file="$1" xml_file total_bugs
-  xml_file="${open_file//\.html/\.xml}"
-  total_bugs="$(xq -r '.BugCollection.FindBugsSummary["@total_bugs"]' "$xml_file")"
-  test "$total_bugs" -gt 0
-}
-
 function open_files() {
-  local open_file open_files
+  local open_file
 
   if check_true "${no_open-}"; then
     return 0
   fi
 
-  mapfile -d $'\0' -t open_files < <(find -Ls "$OPEN_FILES_DIR" -name "$OPEN_FILES_MATCHER" -print0)
-
-  if test "${#open_files[@]}" -eq 0; then
-    exit_fatal "Could not find any files to open."
+  open_file="${profiling_sub_dir}/7.5.1-cpu-raw-flames.svg"
+  if test -e "$open_file"; then
+    log_and_run open_chrome "$open_file"
+  else
+    log_stderr "File to open does not exist: $open_file"
   fi
-
-  for open_file in "${open_files[@]}"; do
-    if ! should_open_file "$open_file"; then
-      echo "Skipping file even though it exists: $open_file"
-      continue
-    fi
-    log_and_run open "$open_file"
-  done
 }
 
 function main() {
+  local g_args task_args=() maybe_task_arg profiling_sub_dir_base gradle_user_home
   cd_to_git_base_dir_if_needed
 
-  log_and_run g "$@" spotbugs -Porg.gradle.workers.max=10 || true
+  for maybe_task_arg in "$@"; do
+    if echo "$maybe_task_arg" | pcregrep -q '^(:|[a-zA-Z])'; then
+      task_args+=("$maybe_task_arg")
+    fi
+  done
+
+  if test "${#task_args[@]}" -eq 0; then
+    exit_fatal "No task arguments found: $*"
+  fi
+
+  profiling_sub_dir_base="${PROFILING_DIR}/gradle-profiler/$(git repo-name)"
+  gradle_user_home="${profiling_sub_dir_base}/gradle-user-home"
+  profiling_sub_dir="${profiling_sub_dir_base}/$(join_by '_' "${task_args[@]}")"
+
+  if test -e "$profiling_sub_dir"; then
+    if confirm_with_auto "Delete existing profiling dir (${profiling_sub_dir})?"; then
+      log_and_run trash -Fv "$profiling_sub_dir"
+    fi
+  fi
+
+  #    --measure-build-op
+  #    --measure-config-time
+  g_args=(
+    --profile async-profiler
+    --warmups 1
+    --gradle-user-home "${gradle_user_home}"
+    --output-dir "$profiling_sub_dir"
+    --project-dir "$(pwd)"
+    "$@"
+  )
+
+  log_and_run gradle-profiler "${g_args[@]}"
   open_files
 }
 
