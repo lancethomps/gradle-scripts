@@ -5,7 +5,8 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
-declare -x profiling_sub_dir
+profiler="${profiler:-async}"
+declare -x profiling_sub_dir profiler_args
 
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
@@ -19,7 +20,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--no-open] <gradle_arg>...
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--include-build-ops] [--no-open] [--profiler <profiler>] [--use-isolated-gradle-user-home] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -48,8 +49,21 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --include-build-ops)
+      include_build_ops=true
+      shift
+      ;;
     --no-open)
       no_open=true
+      shift
+      ;;
+    --profiler)
+      shift
+      profiler="$1"
+      shift
+      ;;
+    --use-isolated-gradle-user-home)
+      use_isolated_gradle_user_home=true
       shift
       ;;
     --)
@@ -73,12 +87,47 @@ function open_files() {
     return 0
   fi
 
+  if test "$profiler" != "async"; then
+    return 0
+  fi
+
   open_file="${profiling_sub_dir}/7.5.1-cpu-raw-flames.svg"
   if test -e "$open_file"; then
-    log_and_run open_chrome "$open_file"
+    log_and_run open -a "/Applications/Google Chrome.app" "$open_file"
   else
     log_stderr "File to open does not exist: $open_file"
   fi
+}
+
+function get_profiler_args() {
+  if test "${profiler-}" = "async"; then
+    profiler_args=(
+      --profile async-profiler-all
+    )
+  elif test "${profiler}" = "jprofiler"; then
+    profiler_args=(
+      --profile jprofiler
+      #      --jprofiler-config sampling-all
+      --jprofiler-config instrumentation
+      --jprofiler-probes builtin.FileProbe
+    )
+  elif test "${profiler}" = "chrome"; then
+    profiler_args=(
+      --profile chrome-trace
+    )
+  else
+    exit_fatal_with_usage "profiler not recognized: $profiler"
+  fi
+
+  if check_true "${include_build_ops-}"; then
+    profiler_args+=(
+      --measure-build-op 'org.gradle.configuration.project.ConfigureProjectBuildOperationType'
+      --measure-build-op 'org.gradle.initialization.ConfigureBuildBuildOperationType'
+      --measure-build-op 'org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType'
+    )
+  fi
+
+  return 0
 }
 
 function main() {
@@ -95,9 +144,15 @@ function main() {
     exit_fatal "No task arguments found: $*"
   fi
 
+  get_profiler_args
   profiling_sub_dir_base="${PROFILING_DIR}/gradle-profiler/$(git repo-name)"
-  gradle_user_home="${profiling_sub_dir_base}/gradle-user-home"
-  profiling_sub_dir="${profiling_sub_dir_base}/$(join_by '_' "${task_args[@]}")"
+  profiling_sub_dir="${profiling_sub_dir_base}/$(join_by '_' "${task_args[@]}")-${profiler}"
+
+  if check_true "${use_isolated_gradle_user_home-}"; then
+    gradle_user_home="${profiling_sub_dir_base}/gradle-user-home"
+  else
+    gradle_user_home="${HOME}/.gradle"
+  fi
 
   if test -e "$profiling_sub_dir"; then
     if confirm_with_auto "Delete existing profiling dir (${profiling_sub_dir})?"; then
@@ -105,10 +160,9 @@ function main() {
     fi
   fi
 
-  #    --measure-build-op
-  #    --measure-config-time
   g_args=(
-    --profile async-profiler
+    "${profiler_args[@]}"
+    --measure-config-time
     --warmups 1
     --gradle-user-home "${gradle_user_home}"
     --output-dir "$profiling_sub_dir"
@@ -118,6 +172,7 @@ function main() {
 
   log_and_run gradle-profiler "${g_args[@]}"
   open_files
+  mac_play_finished
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
