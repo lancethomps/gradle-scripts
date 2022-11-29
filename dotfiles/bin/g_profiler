@@ -15,13 +15,17 @@ function _usage() {
   local SYNOP_INDENT
   SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
 
+  log_and_run_surround gradle-profiler --help
+
   cat <<EOF
 NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--include-build-ops] [--no-open] [--profiler <profiler>] [--use-isolated-gradle-user-home] <gradle_arg>...
+       ${_SCRIPT_NAME} [--auto-confirm] [--cd-to-git-base-dir] [--keep-existing] [--no-open]
+       ${SYNOP_INDENT} [--benchmark] [--include-build-ops] [--profiler <profiler>] [--use-isolated-gradle-user-home]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<gradle_profiler_arg>...] <gradle_arg>...
 
 EXAMPLES
        ${_SCRIPT_NAME}
@@ -45,12 +49,25 @@ while test $# -gt 0; do
       export verbose=true
       shift
       ;;
+    --auto-confirm)
+      auto_confirm=true
+      shift
+      ;;
+    --benchmark)
+      benchmark=true
+      profiler=benchmark
+      shift
+      ;;
     --cd-to-git-base-dir)
       cd_to_git_base_dir=true
       shift
       ;;
     --include-build-ops)
       include_build_ops=true
+      shift
+      ;;
+    --keep-existing)
+      keep_existing=true
       shift
       ;;
     --no-open)
@@ -80,6 +97,10 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
+function is_benchmark() {
+  test "${profiler-}" = "benchmark" || check_true "${benchmark-}"
+}
+
 function open_files() {
   local open_file
 
@@ -87,11 +108,14 @@ function open_files() {
     return 0
   fi
 
-  if test "$profiler" != "async"; then
+  if is_benchmark; then
+    open_file="${profiling_sub_dir}/benchmark.html"
+  elif test "$profiler" = "async"; then
+    open_file="${profiling_sub_dir}/7.5.1-cpu-raw-flames.svg"
+  else
     return 0
   fi
 
-  open_file="${profiling_sub_dir}/7.5.1-cpu-raw-flames.svg"
   if test -e "$open_file"; then
     log_and_run open -a "/Applications/Google Chrome.app" "$open_file"
   else
@@ -107,7 +131,7 @@ function get_profiler_args() {
   elif test "${profiler}" = "jprofiler"; then
     profiler_args=(
       --profile jprofiler
-      #      --jprofiler-config sampling-all
+      # --jprofiler-config sampling-all
       --jprofiler-config instrumentation
       --jprofiler-probes builtin.FileProbe
     )
@@ -115,15 +139,19 @@ function get_profiler_args() {
     profiler_args=(
       --profile chrome-trace
     )
+  elif is_benchmark; then
+    profiler_args=(
+      --benchmark
+    )
   else
     exit_fatal_with_usage "profiler not recognized: $profiler"
   fi
 
   if check_true "${include_build_ops-}"; then
     profiler_args+=(
+      --measure-build-op 'org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType'
       --measure-build-op 'org.gradle.configuration.project.ConfigureProjectBuildOperationType'
       --measure-build-op 'org.gradle.initialization.ConfigureBuildBuildOperationType'
-      --measure-build-op 'org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType'
     )
   fi
 
@@ -154,21 +182,28 @@ function main() {
     gradle_user_home="${HOME}/.gradle"
   fi
 
-  if test -e "$profiling_sub_dir"; then
+  if test -e "$profiling_sub_dir" && ! check_true "${keep_existing-}"; then
     if confirm_with_auto "Delete existing profiling dir (${profiling_sub_dir})?"; then
-      log_and_run trash -Fv "$profiling_sub_dir"
+      log_and_run rm -rfv "$profiling_sub_dir"
     fi
   fi
 
   g_args=(
     "${profiler_args[@]}"
     --measure-config-time
-    --warmups 1
     --gradle-user-home "${gradle_user_home}"
     --output-dir "$profiling_sub_dir"
     --project-dir "$(pwd)"
     "$@"
   )
+
+  if ! is_arg_present --warmups "${g_args[@]}"; then
+    if is_benchmark; then
+      g_args=(--warmups 3 "${g_args[@]}")
+    else
+      g_args=(--warmups 1 "${g_args[@]}")
+    fi
+  fi
 
   log_and_run gradle-profiler "${g_args[@]}"
   open_files

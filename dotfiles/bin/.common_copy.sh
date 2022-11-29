@@ -141,6 +141,14 @@ function log_and_run() {
   log_with_title_sep_no_leading_blank_line "$(get_args_quoted "$@")" >&2
   "$@"
 }
+function log_and_run_spaced() {
+  log_with_title_sep "$(get_args_quoted "$@")" >&2
+  "$@"
+}
+function log_and_run_no_sep() {
+  get_args_quoted "$@" >&2
+  "$@"
+}
 function log_and_run_surround() {
   local exit_code
 
@@ -153,13 +161,17 @@ function log_and_run_surround() {
 
   return "$exit_code"
 }
-function log_and_run_spaced() {
-  log_with_title_sep "$(get_args_quoted "$@")" >&2
-  "$@"
-}
-function log_and_run_no_sep() {
-  get_args_quoted "$@" >&2
-  "$@"
+function log_and_run_spaced_surround() {
+  local exit_code
+
+  set +o errexit
+  log_and_run_spaced "$@"
+  exit_code=$?
+  set -o errexit
+
+  log_sep
+
+  return "$exit_code"
 }
 function log_verbose_and_run() {
   if check_verbose; then
@@ -360,4 +372,28 @@ function repeat_run() {
   for idx in $(seq "$times"); do
     "$@"
   done
+}
+
+function git_base_dir() {
+  if command -v git-base-dir >/dev/null 2>&1; then
+    git base-dir
+  else
+    git rev-parse --show-toplevel
+  fi
+}
+
+function git_in_repo() {
+  if command -v git-in-repo >/dev/null 2>&1; then
+    git in-repo
+  else
+    test -d .git || git rev-parse --git-dir >/dev/null 2>&1
+  fi
+}
+
+function cd_to_git_base_dir_if_needed() {
+  if git_in_repo && check_true "${cd_to_git_base_dir-}"; then
+    cd "$(git_base_dir)" || exit_fatal "Could not cd to git base-dir: $(git_base_dir)"
+  fi
+
+  return 0
 }
