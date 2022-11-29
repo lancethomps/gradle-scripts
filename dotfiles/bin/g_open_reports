@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.common_copy.sh
+source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+function find_html_reports() {
+  git ignored | pcregrep '(build/reports.*/(index|dependency-check-report|spotbugs_.*)\.html$)' | pcregrep -v '/ns-1/'
+}
+
+function main() {
+  local selected_files
+  cd "$(git base-dir)"
+
+  mapfile -t selected_files < <(find_html_reports | select_prompt_fzf --bind 'right:execute-silent(open {})')
+  if test "${#selected_files[@]}" -eq 0; then
+    return 0
+  fi
+  log_and_run_no_sep open "${selected_files[@]}"
+}
+
+main "$@"
