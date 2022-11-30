@@ -169,7 +169,7 @@ function log_and_run_spaced_surround() {
   exit_code=$?
   set -o errexit
 
-  log_sep
+  log_sep >&2
 
   return "$exit_code"
 }

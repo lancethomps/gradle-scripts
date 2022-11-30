@@ -57,7 +57,8 @@ done
 function main() {
   cd_to_git_base_dir_if_needed
 
-  log_and_run g refreshVersionsCleanup "$@"
+  log_and_run_surround git remove-refresh-versions-settings-comments --auto-confirm
+  log_and_run_spaced g refreshVersionsCleanup "$@"
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
