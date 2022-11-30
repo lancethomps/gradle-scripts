@@ -390,9 +390,13 @@ function git_in_repo() {
   fi
 }
 
+function cd_to_git_base_dir() {
+  cd "$(git_base_dir)" || exit_fatal "Could not cd to git base-dir: $(git_base_dir)"
+}
+
 function cd_to_git_base_dir_if_needed() {
   if git_in_repo && check_true "${cd_to_git_base_dir-}"; then
-    cd "$(git_base_dir)" || exit_fatal "Could not cd to git base-dir: $(git_base_dir)"
+    cd_to_git_base_dir
   fi
 
   return 0
