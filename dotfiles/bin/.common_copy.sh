@@ -187,6 +187,20 @@ function log_verbose_and_run_spaced() {
     "$@"
   fi
 }
+function log_verbose_and_run_spaced_surround() {
+  if check_verbose; then
+    log_and_run_spaced_surround "$@"
+  else
+    "$@"
+  fi
+}
+function log_verbose_and_run_surround() {
+  if check_verbose; then
+    log_and_run_surround "$@"
+  else
+    "$@"
+  fi
+}
 function log_verbose_and_run_no_sep() {
   if check_verbose; then
     log_and_run_no_sep "$@"
