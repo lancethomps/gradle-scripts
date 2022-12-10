@@ -12,7 +12,7 @@ function main() {
     if command -v gradle_release_versions >/dev/null 2>&1; then
       local latest_version
       echo "No --gradle-version specified, finding the latest..."
-      latest_version="$(gradle_release_versions | head -1)"
+      latest_version="$(gradle_release_versions | head -1 | gsed -r 's/\.0$//g')"
       echo "Using --gradle-version=${latest_version}"
       gradle_args+=(--gradle-version "$latest_version")
     else
@@ -20,7 +20,7 @@ function main() {
     fi
   fi
 
-  log_and_run gradle wrapper "${gradle_args[@]}"
+  log_and_run g wrapper "${gradle_args[@]}"
 
   if git check-ignore --quiet gradlew.bat; then
     rm -f gradlew.bat
