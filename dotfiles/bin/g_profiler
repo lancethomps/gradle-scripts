@@ -22,7 +22,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--auto-confirm] [--cd-to-git-base-dir] [--keep-existing] [--no-open]
+       ${_SCRIPT_NAME} [--auto-confirm] [--cd-to-git-base-dir] [--keep-existing] [--no-open] [--output-dir-suffix <output_dir_suffix>]
        ${SYNOP_INDENT} [--benchmark] [--include-build-ops] [--profiler <profiler>] [--use-isolated-gradle-user-home]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
        ${SYNOP_INDENT} [<gradle_profiler_arg>...] <gradle_arg>...
@@ -72,6 +72,11 @@ while test $# -gt 0; do
       ;;
     --no-open)
       no_open=true
+      shift
+      ;;
+    --output-dir-suffix)
+      shift
+      output_dir_suffix="$1"
       shift
       ;;
     --profiler)
@@ -175,6 +180,12 @@ function main() {
   get_profiler_args
   profiling_sub_dir_base="${PROFILING_DIR}/gradle-profiler/$(git repo-name)"
   profiling_sub_dir="${profiling_sub_dir_base}/$(join_by '_' "${task_args[@]}")-${profiler}"
+  if test -n "${output_dir_suffix-}"; then
+    if [[ $output_dir_suffix != -* ]]; then
+      output_dir_suffix="-$output_dir_suffix"
+    fi
+    profiling_sub_dir="${profiling_sub_dir}${output_dir_suffix}"
+  fi
 
   if check_true "${use_isolated_gradle_user_home-}"; then
     gradle_user_home="${profiling_sub_dir_base}/gradle-user-home"

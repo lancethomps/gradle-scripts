@@ -46,6 +46,12 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
       shift
@@ -54,16 +60,14 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-if test "${#PASSTHROUGH_ARGS[@]}" -eq 0; then
-  echo "You must pass a task to this command"
-  _usage "$@"
-  exit 1
-fi
-
 function main() {
   cd_to_git_base_dir_if_needed
 
-  log_and_run g -q taskTree "${PASSTHROUGH_ARGS[@]}"
+  if test "${#PASSTHROUGH_ARGS[@]}" -eq 0; then
+    exit_fatal_with_usage "You must pass a task to this command"
+  fi
+
+  log_and_run g -q "${PASSTHROUGH_ARGS[0]}" taskTree "${PASSTHROUGH_ARGS[@]:1}"
 }
 
 main

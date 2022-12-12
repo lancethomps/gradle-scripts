@@ -262,7 +262,7 @@ function get_args_quoted() {
   fi
   local var all_args=''
   for var in "$@"; do
-    if [[ $var =~ ^[\-_=/~a-zA-Z0-9]+$ ]] || [[ $var =~ ^[a-zA-Z0-9_]+= ]]; then
+    if [[ $var =~ ^[\-_=/~:a-zA-Z0-9]+$ ]] || [[ $var =~ ^[a-zA-Z0-9_]+= ]]; then
       if test -z "${all_args-}"; then
         all_args="${var}"
       else

@@ -179,6 +179,10 @@ __gradle-long-options() {
 --write-locks           - Persists dependency resolution for locked configurations
 --fail-fast             - CUSTOM Stop tests after first failure
 --tests                 - CUSTOM define tests
+--depth                 - CUSTOM option for taskTree
+--repeat                - CUSTOM option for taskTree
+--with-inputs           - CUSTOM option for taskTree
+--with-outputs          - CUSTOM option for taskTree
 "
 
   COMPREPLY=($(compgen -W "$args" -- "$cur"))

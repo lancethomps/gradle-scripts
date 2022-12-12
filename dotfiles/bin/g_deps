@@ -105,7 +105,7 @@ if test "${#projects[@]}" -gt 1; then
   multi_project=true
 fi
 
-out_dir="build/reports"
+out_dir="build/reports/deps"
 out_file="${out_dir}/deps.${deps_type}.txt"
 if ! test -d "$out_dir"; then
   mkdir -p "$out_dir"
