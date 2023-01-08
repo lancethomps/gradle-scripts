@@ -164,6 +164,7 @@ __gradle-long-options() {
 --quiet                 - Log errors only
 --recompile-scripts     - Forces scripts to be recompiled, bypassing caching
 --refresh-dependencies  - Refresh the state of dependencies
+--rerun                 - Rerun the specific tasks specified
 --rerun-tasks           - Specifies that any task optimization is ignored
 --scan                  - Create a build scan
 --settings-file         - Specifies the settings file
