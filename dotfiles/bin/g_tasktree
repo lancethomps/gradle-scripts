@@ -67,7 +67,7 @@ function main() {
     exit_fatal_with_usage "You must pass a task to this command"
   fi
 
-  log_and_run g -q "${PASSTHROUGH_ARGS[0]}" taskTree "${PASSTHROUGH_ARGS[@]:1}"
+  log_and_run g -q --console plain "${PASSTHROUGH_ARGS[0]}" taskTree "${PASSTHROUGH_ARGS[@]:1}"
 }
 
 main
