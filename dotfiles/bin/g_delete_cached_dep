@@ -6,6 +6,10 @@ source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
 set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
 
+if test -z "${1-}"; then
+  exit_fatal "Usage: $(basename "$0") <group:name>"
+fi
+
 function main() {
   local dep_id="$1" dep_path="${1//:/\/}" found_dirs
   shift
