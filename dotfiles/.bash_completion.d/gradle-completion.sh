@@ -184,6 +184,8 @@ __gradle-long-options() {
 --repeat                - CUSTOM option for taskTree
 --with-inputs           - CUSTOM option for taskTree
 --with-outputs          - CUSTOM option for taskTree
+--purpose               - CUSTOM option for cdk
+--stage                 - CUSTOM option for cdk
 "
 
   COMPREPLY=($(compgen -W "$args" -- "$cur"))
