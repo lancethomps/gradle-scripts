@@ -37,7 +37,7 @@ function is_auto_confirm() {
 }
 function confirm_with_auto() {
   if is_auto_confirm; then
-    echo "AUTO CONFIRMED: ${1-}"
+    log_stderr "AUTO CONFIRMED: ${1-}"
     return 0
   fi
   confirm "$@"
@@ -45,13 +45,13 @@ function confirm_with_auto() {
 
 function log_debug_or_verbose() {
   if check_verbose || check_debug; then
-    echo "$@"
+    log_stderr "$@"
   fi
   return 0
 }
 function log_verbose() {
   if check_verbose; then
-    echo "$@"
+    log_stderr "$@"
   fi
   return 0
 }

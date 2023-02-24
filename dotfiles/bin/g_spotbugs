@@ -63,7 +63,12 @@ done
 
 function should_open_file() {
   local open_file="$1" xml_file total_bugs
+
   xml_file="${open_file//\.html/\.xml}"
+  if ! test -e "$xml_file"; then
+    xml_file="$(dirname "$open_file")/spotbugs/$(basename "$xml_file")"
+  fi
+
   total_bugs="$(xq -r '.BugCollection.FindBugsSummary["@total_bugs"]' "$xml_file")"
   test "$total_bugs" -gt 0
 }
