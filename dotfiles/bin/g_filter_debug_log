@@ -16,7 +16,6 @@ REMOVE_REGEXES=(
 function main() {
   if test -z "${1-}"; then
     exit_fatal "You must pass a file to this script"
-    exit 1
   fi
 
   remove_matching_lines "$(join_by_regex_or "${REMOVE_REGEXES[@]}")" "$@"
