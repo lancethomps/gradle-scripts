@@ -17,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] <gradle_arg>...
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--run-after <run_after>] <gradle_arg>...
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -46,6 +46,11 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --run-after)
+      shift
+      run_after="$1"
+      shift
+      ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
       shift
@@ -55,9 +60,15 @@ done
 ##################################################################################################################################################
 
 function main() {
+  local g_args
   cd_to_git_base_dir_if_needed
 
-  log_and_run g "$@" publishToMavenLocal
+  g_args=("$@" publishToMavenLocal)
+  if test -n "${run_after-}"; then
+    g_args+=("$run_after")
+  fi
+
+  log_and_run g "${g_args[@]}"
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
