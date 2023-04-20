@@ -58,6 +58,7 @@ function main() {
   cd_to_git_base_dir_if_needed
 
   log_and_run g refreshVersions "$@"
+  log_and_run git -P diff -- settings.gradle.kts versions.properties
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
