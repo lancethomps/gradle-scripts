@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.command_defaults.sh
+source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
+##################################################################################################################################################
+
+_SCRIPT_NAME="$(basename "$0")"
+TEST_LOG_FILE="app/logs/test.log"
+RG_ARGS=(--color=always)
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--print-stats]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<passthrough_arg>...]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# SCRIPTARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --print-stats)
+      print_stats=true
+      shift
+      ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function print_stats() {
+  log_and_run_spaced_surround rg "${RG_ARGS[@]}" 'Started .* in ' "$TEST_LOG_FILE"
+  log_and_run_spaced rg "${RG_ARGS[@]}" 'Spring test ApplicationContext cache statistics' "$TEST_LOG_FILE" | tail -1 && log_sep
+}
+
+function main() {
+  local exit_code
+
+  if check_true "${print_stats-}"; then
+    print_stats
+    return 0
+  fi
+
+  set +o errexit
+  .g_simple_task test "$@"
+  exit_code="$?"
+  set -o errexit
+
+  print_stats
+  return "$exit_code"
+}
+
+main "$@"
