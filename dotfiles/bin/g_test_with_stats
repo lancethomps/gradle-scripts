@@ -5,10 +5,6 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
-_SCRIPT_NAME="$(basename "$0")"
-TEST_LOG_FILE="app/logs/test.log"
-RG_ARGS=(--color=always)
-
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
 
@@ -65,16 +61,11 @@ while test $# -gt 0; do
 done
 ##################################################################################################################################################
 
-function print_stats() {
-  log_and_run_spaced_surround rg "${RG_ARGS[@]}" 'Started .* in ' "$TEST_LOG_FILE"
-  log_and_run_spaced rg "${RG_ARGS[@]}" 'Spring test ApplicationContext cache statistics' "$TEST_LOG_FILE" | tail -1 && log_sep
-}
-
 function main() {
   local exit_code
 
   if check_true "${print_stats-}"; then
-    print_stats
+    g_test_stats
     return 0
   fi
 
@@ -83,8 +74,8 @@ function main() {
   exit_code="$?"
   set -o errexit
 
-  print_stats
+  g_test_stats
   return "$exit_code"
 }
 
-main "$@"
+main "${PASSTHROUGH_ARGS[@]}"

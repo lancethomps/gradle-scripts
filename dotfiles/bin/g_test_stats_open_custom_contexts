@@ -5,6 +5,8 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
+TEST_LOG_FILE="app/logs/test.log"
+
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
 
@@ -17,8 +19,9 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--continuous | -c] [--run-after <run_after>] <gradle_arg>...
+       ${_SCRIPT_NAME}
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<passthrough_arg>...]
 
 EXAMPLES
        ${_SCRIPT_NAME}
@@ -26,7 +29,7 @@ EOF
 }
 ##################################################################################################################################################
 
-################################################################# FILTERARGS #####################################################################
+################################################################# SCRIPTARGS #####################################################################
 PASSTHROUGH_ARGS=()
 while test $# -gt 0; do
   case "$1" in
@@ -42,19 +45,11 @@ while test $# -gt 0; do
       export verbose=true
       shift
       ;;
-    --cd-to-git-base-dir)
-      cd_to_git_base_dir=true
+    --)
       shift
-      ;;
-    --continuous | -c)
-      export continuous=true
-      PASSTHROUGH_ARGS+=(--continuous)
-      shift
-      ;;
-    --run-after)
-      shift
-      run_after="$1"
-      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
       ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
@@ -65,15 +60,14 @@ done
 ##################################################################################################################################################
 
 function main() {
-  local g_args
-  cd_to_git_base_dir_if_needed
+  local custom_context_classes
+  # shellcheck disable=SC2016
+  mapfile -t custom_context_classes < <(log_and_run_no_sep rg "${RG_ARGS[@]}" -or '$2' '(Storing ApplicationContext) .* testClass = (.*?),' "$TEST_LOG_FILE" | gsed 's/\./\//g' | gsed -r 's/$/.kt/g' | gsed -r 's/^/app\/src\/test\/kotlin\//g')
 
-  g_args=("$@" publishToMavenLocal)
-  if test -n "${run_after-}"; then
-    g_args+=("$run_after")
-  fi
+  log_with_title_sep "Custom Context Tests"
+  join_by_newline_with_end "${custom_context_classes[@]}"
 
-  log_and_run g "${g_args[@]}"
+  join_by_newline_with_end "${custom_context_classes[@]}" | open_grepped_lines --ask --select-lines --select-header "use right arrow to open in idea" -
 }
 
 main "${PASSTHROUGH_ARGS[@]}"
