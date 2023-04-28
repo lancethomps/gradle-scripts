@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.common_copy.sh
+source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+declare -x reports
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--no-open]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<passthrough_arg>...]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# SCRIPTARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --no-open)
+      export no_open=true
+      shift
+      ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function find_detekt_reports() {
+  git ignored | pcregrep 'build/reports/(main|test)\.md$'
+}
+
+function pull_files_from_reports() {
+  local regex report
+
+  regex="$(pwd)"'/(.*?):\d+:\d+'
+
+  for report in "${reports[@]}"; do
+    pcregrep -o1 "$regex" "$report"
+  done
+}
+
+function get_distinct_files() {
+  pull_files_from_reports | sort -u
+}
+
+function main() {
+  local distinct_files
+
+  cd_to_git_base_dir
+
+  log_with_title_sep "REPORTS"
+  mapfile -t reports < <(find_detekt_reports)
+  if test "${#reports[@]}" -eq 0; then
+    log_stderr "None found"
+    return 0
+  fi
+  join_by_newline_with_end "${reports[@]}"
+  log_sep
+
+  log_with_title_sep "FILES WITH FINDINGS"
+  mapfile -t distinct_files < <(get_distinct_files)
+  if test "${#distinct_files[@]}" -eq 0; then
+    log_stderr "None found"
+    return 0
+  fi
+  join_by_newline_with_end "${distinct_files[@]}"
+  log_sep
+
+  if ! check_true "${no_open-}"; then
+    idea "${distinct_files[@]}"
+  fi
+
+  return 0
+}
+
+main "$@"
