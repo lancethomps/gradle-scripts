@@ -65,7 +65,7 @@ done
 ##################################################################################################################################################
 
 function find_detekt_reports() {
-  git ignored | pcregrep 'build/reports/(main|test)\.md$'
+  git ignored | pcregrep 'build/reports/detekt/.*\.md$'
 }
 
 function pull_files_from_reports() {
@@ -74,7 +74,7 @@ function pull_files_from_reports() {
   regex="$(pwd)"'/(.*?):\d+:\d+'
 
   for report in "${reports[@]}"; do
-    pcregrep -o1 "$regex" "$report"
+    pcregrep -o1 "$regex" "$report" || true
   done
 }
 
