@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+set -o errexit -o errtrace -o nounset
+##################################################################################################################################################
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--no-continue]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<passthrough_arg>...]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# SCRIPTARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --no-continue)
+      no_continue=true
+      shift
+      ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function main() {
+  local exit_code=0 g_args=(detektAll)
+
+  if test "${no_continue-}" != "true"; then
+    g_args+=(--continue)
+  fi
+
+  g "${g_args[@]}" "$@" || exit_code=1
+  g_detekt_findings_files
+
+  return "$exit_code"
+}
+
+main "${PASSTHROUGH_ARGS[@]}"

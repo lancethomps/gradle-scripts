@@ -20,7 +20,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--no-open]
+       ${_SCRIPT_NAME} [--auto-open | --no-open]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
        ${SYNOP_INDENT} [<passthrough_arg>...]
 
@@ -46,6 +46,10 @@ while test $# -gt 0; do
       export verbose=true
       shift
       ;;
+    --auto-open)
+      auto_open=true
+      shift
+      ;;
     --no-open)
       export no_open=true
       shift
@@ -66,6 +70,19 @@ done
 
 function find_detekt_reports() {
   git ignored | pcregrep 'build/reports/detekt/.*\.md$'
+}
+
+function print_detekt_reports() {
+  local report
+
+  for report in "${reports[@]}"; do
+    if pcregrep -q '^## Findings \([1-9]' "$report"; then
+      log_with_title_sep "$report"
+      # shellcheck disable=SC2016
+      gsed -n '/^## Findings/,$p' "$report" | mdcat -
+      echo "$(log_sep)"$'\n'
+    fi
+  done
 }
 
 function pull_files_from_reports() {
@@ -93,6 +110,9 @@ function main() {
     log_stderr "None found"
     return 0
   fi
+
+  print_detekt_reports
+
   join_by_newline_with_end "${reports[@]}"
   log_sep
 
@@ -105,8 +125,10 @@ function main() {
   join_by_newline_with_end "${distinct_files[@]}"
   log_sep
 
-  if ! check_true "${no_open-}"; then
+  if check_true "${auto_open-}"; then
     idea "${distinct_files[@]}"
+  elif ! check_true "${no_open-}"; then
+    join_by_newline_with_end "${distinct_files[@]}" | ask_to_open_grepped_lines
   fi
 
   return 0
