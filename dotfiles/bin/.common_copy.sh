@@ -44,7 +44,7 @@ function confirm_with_auto() {
 }
 
 function log_debug_or_verbose() {
-  if check_verbose || check_debug; then
+  if check_debug_or_verbose; then
     log_stderr "$@"
   fi
   return 0
@@ -60,6 +60,9 @@ function check_verbose() {
 }
 function check_debug() {
   check_true "${debug_mode-}"
+}
+function check_debug_or_verbose() {
+  check_verbose || check_debug
 }
 function exit_if_debug() {
   if check_debug; then
