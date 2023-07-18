@@ -21,7 +21,8 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--no-open] <gradle_arg>...
+       ${_SCRIPT_NAME} [--auto-open | --no-open] <gradle_arg>...
+       ${SYNOP_INDENT} [--cd-to-git-base-dir]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -50,6 +51,10 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --auto-open)
+      auto_open=true
+      shift
+      ;;
     --no-open)
       no_open=true
       shift
@@ -69,13 +74,17 @@ function open_files() {
     return 0
   fi
 
-  for open_file in "${OPEN_FILES[@]}"; do
-    if test -e "$open_file"; then
-      log_and_run open "$open_file"
-    else
-      log_stderr "File to open does not exist: $open_file"
-    fi
-  done
+  if check_true "${auto_open-}"; then
+    for open_file in "${OPEN_FILES[@]}"; do
+      if test -e "$open_file"; then
+        log_and_run open "$open_file"
+      else
+        log_stderr "File to open does not exist: $open_file"
+      fi
+    done
+  else
+    g_open_reports
+  fi
 }
 
 function main() {

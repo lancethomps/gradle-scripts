@@ -17,7 +17,8 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] <gradle_arg>...
+       ${_SCRIPT_NAME} [--all] [--open] <gradle_arg>...
+       ${SYNOP_INDENT} [--cd-to-git-base-dir]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -46,6 +47,14 @@ while test $# -gt 0; do
       cd_to_git_base_dir=true
       shift
       ;;
+    --all)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+    --open)
+      open=true
+      shift
+      ;;
     *)
       PASSTHROUGH_ARGS+=("$1")
       shift
@@ -55,9 +64,23 @@ done
 ##################################################################################################################################################
 
 function main() {
+  local output_file
   cd_to_git_base_dir_if_needed
 
-  log_and_run g -q tasks --all "${PASSTHROUGH_ARGS[@]}"
+  if test -d build || git in-base-dir; then
+    output_file="build/reports/project/tasks.txt"
+    create_parent_dir_if_needed "$output_file"
+  fi
+
+  if test -n "${output_file-}"; then
+    log_and_run g -q tasks --types "${PASSTHROUGH_ARGS[@]}" | tee "$output_file"
+    echo "$output_file"
+    if check_true "${open-}"; then
+      idea "$output_file"
+    fi
+  else
+    log_and_run g -q tasks --types "${PASSTHROUGH_ARGS[@]}"
+  fi
 }
 
 main

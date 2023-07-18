@@ -7,7 +7,7 @@ set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
 
 function find_html_reports() {
-  git ignored | pcregrep 'build/reports.*/((index|dependency-check-report|main|profile.*|spotbugs_.*|test)\.html$|(detekt|snyk.*)\.json$)' | pcregrep -v '/ns-'
+  git ignored | pcregrep 'build/reports.*/((index|dependency-check-report|main|profile.*|spotbugs_.*|test)\.html$|(detekt|snyk.*)\.json$|project/[^/]+\.txt$)' | pcregrep -v '/ns-'
 }
 
 function main() {
