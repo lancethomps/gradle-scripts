@@ -20,6 +20,22 @@ function check_command() {
     return 1
   fi
 }
+function check_required_params() {
+  if ! check_required_params_without_exit "$@"; then
+    exit_fatal_with_usage "Required parameters are missing"
+  fi
+  return 0
+}
+function check_required_params_without_exit() {
+  local param return_code=0
+  for param in "$@"; do
+    if test -z "${!param-}"; then
+      log_fatal "${param} is required but no value is defined"
+      return_code=1
+    fi
+  done
+  return "$return_code"
+}
 function confirm() {
   local response=""
   read -r -p "${1:-Are you sure?}"$'\n'"[Y/n]> " response
@@ -213,6 +229,14 @@ function log_verbose_and_run_no_sep() {
 }
 function log_stderr() {
   echo "$@" >&2
+}
+function exit_fatal_with_usage() {
+  if command -v _usage >/dev/null 2>&1; then
+    log_with_title_sep USAGE
+    _usage
+    log_sep
+  fi
+  exit_fatal "$@"
 }
 function exit_fatal() {
   local exit_code="${1-}"

@@ -5,8 +5,68 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--all]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+       ${SYNOP_INDENT} [<passthrough_arg>...]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# SCRIPTARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --all)
+      all=true
+      shift
+      ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      shift "$#"
+      break
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
 function main() {
-  local gradle_args=(--distribution-type ALL "$@")
+  local gradle_args=("$@")
+
+  if check_true "${all-}"; then
+    gradle_args+=(--distribution-type ALL)
+  fi
 
   if ! is_arg_present --gradle-version "${gradle_args[@]}"; then
     if command -v gradle_release_versions >/dev/null 2>&1; then
@@ -29,4 +89,4 @@ function main() {
   return 0
 }
 
-main "$@"
+main "${PASSTHROUGH_ARGS[@]}"
