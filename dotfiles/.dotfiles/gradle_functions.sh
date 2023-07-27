@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 alias gb='g build'
 alias gcb='g clean build'
-alias gt='g test'
+alias gt='g_test_with_stats'
 alias gl='g lintFast'
 alias glf='g lintFixFast'
 alias g_clean_build='g clean build'

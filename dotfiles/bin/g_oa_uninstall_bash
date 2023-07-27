@@ -6,23 +6,8 @@ source "${_SCRIPT_DIR}/.common_copy.sh" || exit 1
 set -o errexit -o errtrace -o nounset
 ##################################################################################################################################################
 
-function find_report_files() {
-  if test -n "${1-}"; then
-    git ignored | rg "$@"
-  else
-    git ignored | rg 'build/reports.*/((index|dependency-check-report|main|profile.*|spotbugs_.*|test)\.html$|(detekt|snyk.*)\.json$|project/[^/]+\.txt$)' | rg -v '/ns-'
-  fi
-}
-
 function main() {
-  local selected_files
-  cd "$(git base-dir)"
-
-  mapfile -t selected_files < <(find_report_files "$@" | select_prompt_fzf --bind 'right:execute-silent(open {})')
-  if test "${#selected_files[@]}" -eq 0; then
-    return 0
-  fi
-  log_and_run_no_sep open "${selected_files[@]}"
+  log_and_run g "$@" openApiUninstallBashClients
 }
 
 main "$@"

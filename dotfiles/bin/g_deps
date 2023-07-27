@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.command_defaults.sh
+source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
+##################################################################################################################################################
+
+declare -x COMBINED_FILE="build/reports/project/deps.all.txt"
+
+################################################################### USAGE ########################################################################
+_SCRIPT_NAME="$(basename "$0")"
+
+function _usage() {
+  local SYNOP_INDENT
+  SYNOP_INDENT="$(head -c "$(echo -n "${_SCRIPT_NAME}" | wc -c)" </dev/zero | tr '\0' " ")"
+
+  cat <<EOF
+NAME
+       ${_SCRIPT_NAME}
+
+SYNOPSIS
+       ${_SCRIPT_NAME} [--auto-open | --no-open] <gradle_arg>...
+       ${SYNOP_INDENT} [--cd-to-git-base-dir]
+       ${SYNOP_INDENT} [--help] [--debug] [--verbose]
+
+EXAMPLES
+       ${_SCRIPT_NAME}
+EOF
+}
+##################################################################################################################################################
+
+################################################################# FILTERARGS #####################################################################
+PASSTHROUGH_ARGS=()
+while test $# -gt 0; do
+  case "$1" in
+    -h | --help)
+      _usage
+      exit 0
+      ;;
+    --debug)
+      export debug_mode=true
+      shift
+      ;;
+    --verbose)
+      export verbose=true
+      shift
+      ;;
+    --cd-to-git-base-dir)
+      cd_to_git_base_dir=true
+      shift
+      ;;
+    --auto-open)
+      auto_open=true
+      shift
+      ;;
+    --no-open)
+      no_open=true
+      shift
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+##################################################################################################################################################
+
+function find_report_files() {
+  git ignored | pcregrep 'dependencies\.txt$'
+}
+
+function create_combined_report() {
+  local report_files report_file
+
+  mapfile -t report_files < <(find_report_files)
+  if test "${#report_files[@]}" -eq 0; then
+    exit_fatal "No dependencies.txt files found"
+  fi
+
+  echo '# COMBINED DEPENDENCIES REPORTS' >"$COMBINED_FILE"
+
+  for report_file in "${report_files[@]}"; do
+    cat "$report_file" >>"$COMBINED_FILE"
+  done
+
+  echo "$COMBINED_FILE"
+}
+
+function open_files() {
+  local open_files open_file
+
+  if check_true "${no_open-}"; then
+    return 0
+  fi
+
+  if check_true "${auto_open-}"; then
+    mapfile -t open_files < <(find_report_files)
+    open_files+=("$COMBINED_FILE")
+    for open_file in "${open_files[@]}"; do
+      if test -e "$open_file"; then
+        log_and_run open "$open_file"
+      else
+        log_stderr "File to open does not exist: $open_file"
+      fi
+    done
+  else
+    g_open_reports '(dependencies|deps\.all)\.txt$'
+  fi
+}
+
+function main() {
+  cd_to_git_base_dir_if_needed
+
+  log_and_run g "$@" dependencyReport
+  create_combined_report
+  open_files
+}
+
+main "${PASSTHROUGH_ARGS[@]}"
