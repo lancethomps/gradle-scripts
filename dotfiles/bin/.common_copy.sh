@@ -30,7 +30,7 @@ function check_required_params_without_exit() {
   local param return_code=0
   for param in "$@"; do
     if test -z "${!param-}"; then
-      log_fatal "${param} is required but no value is defined"
+      log_fatal "Parameter '${param}' is required but no value is defined"
       return_code=1
     fi
   done
