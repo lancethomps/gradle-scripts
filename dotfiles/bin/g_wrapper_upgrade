@@ -17,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--all | --bin]
+       ${_SCRIPT_NAME} [--all | --bin] [--no-wrapper]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
        ${SYNOP_INDENT} [<passthrough_arg>...]
 
@@ -49,6 +49,10 @@ while test $# -gt 0; do
       ;;
     --bin)
       bin=true
+      shift
+      ;;
+    --no-wrapper)
+      no_wrapper=true
       shift
       ;;
     --)
@@ -91,7 +95,11 @@ function main() {
     fi
   fi
 
-  log_and_run g wrapper "${gradle_args[@]}"
+  if check_true "${no_wrapper-}"; then
+    log_and_run gradle wrapper "${gradle_args[@]}"
+  else
+    log_and_run g wrapper "${gradle_args[@]}"
+  fi
 
   if git check-ignore --quiet gradlew.bat; then
     rm -f gradlew.bat
