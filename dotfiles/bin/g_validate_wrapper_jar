@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+################################################################### SETUP ########################################################################
+if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while running: _SCRIPT_DIR=\"\$(get_script_dir \"${BASH_SOURCE[0]}\")\"" && exit 1; fi
+# shellcheck source=./.command_defaults.sh
+source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
+##################################################################################################################################################
+
+function main() {
+  local gradle_version sha_file_name output_file
+  cd_to_git_base_dir
+
+  if ! gradle_version="$(pcregrep -o1 'distributionUrl=.*gradle-([\d\.]+)' gradle/wrapper/gradle-wrapper.properties)"; then
+    exit_fatal "Could not get gradle version"
+  fi
+
+  sha_file_name="gradle-${gradle_version}-wrapper.jar.sha256"
+  output_file="/tmp/${sha_file_name}"
+
+  log_and_run_no_sep curl --silent --location --output "${output_file}" "https://services.gradle.org/distributions/${sha_file_name}"
+  echo "  $(pwd)/gradle/wrapper/gradle-wrapper.jar" >>"$output_file"
+
+  log_and_run shasum --check "$output_file"
+}
+
+main "$@"

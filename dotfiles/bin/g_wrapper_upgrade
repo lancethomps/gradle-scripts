@@ -17,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--all]
+       ${_SCRIPT_NAME} [--all | --bin]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
        ${SYNOP_INDENT} [<passthrough_arg>...]
 
@@ -47,6 +47,10 @@ while test $# -gt 0; do
       all=true
       shift
       ;;
+    --bin)
+      bin=true
+      shift
+      ;;
     --)
       shift
       PASSTHROUGH_ARGS+=("$@")
@@ -63,9 +67,16 @@ done
 
 function main() {
   local gradle_args=("$@")
+  cd_to_git_base_dir
 
-  if check_true "${all-}"; then
+  if check_true "${bin-}"; then
+    gradle_args+=(--distribution-type BIN)
+  elif check_true "${all-}"; then
     gradle_args+=(--distribution-type ALL)
+  elif rg -q 'all.zip' gradle/wrapper/gradle-wrapper.properties; then
+    gradle_args+=(--distribution-type ALL)
+  else
+    gradle_args+=(--distribution-type BIN)
   fi
 
   if ! is_arg_present --gradle-version "${gradle_args[@]}"; then
