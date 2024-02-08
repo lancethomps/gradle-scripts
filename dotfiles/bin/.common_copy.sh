@@ -295,6 +295,12 @@ function get_args_quoted() {
       else
         all_args="$all_args $var"
       fi
+    elif [[ $var != *"'"* ]] && [[ $var == *'"'* ]]; then
+      if test -z "${all_args}"; then
+        all_args="'$var'"
+      else
+        all_args="$all_args '$var'"
+      fi
     else
       var="${var//\\/\\\\}"
       var="${var//\"/\\\"}"

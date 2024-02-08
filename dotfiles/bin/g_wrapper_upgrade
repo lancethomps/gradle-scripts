@@ -17,7 +17,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--all | --bin] [--no-wrapper]
+       ${_SCRIPT_NAME} [--all | --bin] [--no-use-version-latest] [--no-wrapper]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
        ${SYNOP_INDENT} [<passthrough_arg>...]
 
@@ -49,6 +49,10 @@ while test $# -gt 0; do
       ;;
     --bin)
       bin=true
+      shift
+      ;;
+    --no-use-version-latest)
+      no_use_version_latest=true
       shift
       ;;
     --no-wrapper)
@@ -84,11 +88,14 @@ function main() {
   fi
 
   if ! is_arg_present --gradle-version "${gradle_args[@]}"; then
-    if command -v gradle_release_versions >/dev/null 2>&1; then
+    if ! check_true "${no_use_version_latest-}"; then
+      log_stderr "No --gradle-version specified, using --gradle-version=latest"
+      gradle_args+=(--gradle-version "latest")
+    elif command -v gradle_release_versions >/dev/null 2>&1; then
       local latest_version
-      echo "No --gradle-version specified, finding the latest..."
+      log_stderr "No --gradle-version specified, finding the latest..."
       latest_version="$(gradle_release_versions | head -1 | gsed -r 's/\.0$//g')"
-      echo "Using --gradle-version=${latest_version}"
+      log_stderr "Using --gradle-version=${latest_version}"
       gradle_args+=(--gradle-version "$latest_version")
     else
       exit_fatal "No --gradle-version specified"
