@@ -152,6 +152,12 @@ function log_with_title_sep() {
   echo
   log_with_title_sep_no_leading_blank_line "$@"
 }
+function log_with_title_sep_around() {
+  log_with_title_sep "$1" >&2
+  shift
+  log_stderr "$@"
+  log_sep >&2
+}
 function log_with_title_sep_no_leading_blank_line() {
   echo "$@"
   log_sep
@@ -226,6 +232,14 @@ function log_verbose_and_run_no_sep() {
   else
     "$@"
   fi
+}
+function log_and_run_if_not_debug() {
+  if check_debug; then
+    get_args_quoted "$@" >&2
+    return 0
+  fi
+  log_with_title_sep_no_leading_blank_line "$(get_args_quoted "$@")" >&2
+  "$@"
 }
 function log_stderr() {
   echo "$@" >&2

@@ -11,16 +11,32 @@ if test -z "${1-}"; then
 fi
 
 function main() {
-  local dep_id="$1" dep_path="${1//:/\/}" found_dirs
-  shift
+  local dep_ids=("$@") dep_id dep_paths=() find_args found_dirs
+  find_args=(
+    -Ls "${HOME}/.gradle/caches/modules-2"
+    -type d
+  )
 
-  mapfile -d $'\0' -t found_dirs < <(find -Ls "${HOME}/.gradle/caches/modules-2" -type d -path "*${dep_path}" -print0)
+  for dep_id in "${dep_ids[@]}"; do
+    if test "${#dep_paths[@]}" -ne 0; then
+      dep_paths+=(-or)
+    fi
+    dep_paths+=(-path "*${dep_id//:/\/}")
+  done
+
+  find_args+=(
+    \(
+    "${dep_paths[@]}"
+    \)
+  )
+
+  mapfile -d $'\0' -t found_dirs < <(find "${find_args[@]}" -print0)
   if test "${#found_dirs[@]}" -eq 0; then
     echo "No cached dependency directories found"
     exit 1
   fi
 
-  log_with_title_sep "$dep_id"
+  log_with_title_sep "${dep_ids[*]}"
   join_by_newline_with_end "${found_dirs[@]}"
   log_sep
   if confirm_with_auto "Delete above directories?"; then
