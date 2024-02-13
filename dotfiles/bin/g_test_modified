@@ -5,6 +5,8 @@ if ! _SCRIPT_DIR="$(get_script_dir "${BASH_SOURCE[0]}")"; then echo "Error while
 source "${_SCRIPT_DIR}/.command_defaults.sh" || exit 1
 ##################################################################################################################################################
 
+declare -x all base_branch no_include_resolved_tests origin
+
 ################################################################### USAGE ########################################################################
 _SCRIPT_NAME="$(basename "$0")"
 
@@ -17,7 +19,7 @@ NAME
        ${_SCRIPT_NAME}
 
 SYNOPSIS
-       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--all] [--origin] [<gradle_arg>...]
+       ${_SCRIPT_NAME} [--cd-to-git-base-dir] [--all | -a] [--base-branch <base_branch>] [--no-include-resolved-tests] [--no-origin | --origin] [<gradle_arg>...]
        ${SYNOP_INDENT} [--help] [--debug] [--verbose]
 
 EXAMPLES
@@ -34,12 +36,25 @@ while test $# -gt 0; do
       _usage
       exit 0
       ;;
-    --all)
+    --all | -a)
       all=true
+      shift
+      ;;
+    --base-branch)
+      shift
+      base_branch="$1"
       shift
       ;;
     --cd-to-git-base-dir)
       cd_to_git_base_dir=true
+      shift
+      ;;
+    --no-include-resolved-tests)
+      no_include_resolved_tests=true
+      shift
+      ;;
+    --no-origin)
+      origin=false
       shift
       ;;
     --origin)
@@ -57,38 +72,11 @@ done
 declare -x modified_tests=() modified_projects=()
 
 function pull_modified_tests() {
-  local git_args=(modified-tests) modified_tests_files all_projects test_file test_name proj
+  local modified_tests_files all_projects test_file test_name proj
 
-  if check_true "${all-}"; then
-    local def_branch
-
-    def_branch="$(git default-branch)"
-    if check_true "${origin-}"; then
-      def_branch="origin/$def_branch"
-    fi
-
-    git_args+=("${def_branch}")
-  fi
-
-  mapfile -t modified_tests_files < <(git "${git_args[@]}")
-
+  mapfile -t modified_tests_files < <(git modified-tests --lang kotlin)
   if test "${#modified_tests_files[@]}" -eq 0; then
-    echo "No modified tests found"
-    if check_true "${all-}"; then
-      if check_true "${origin-}"; then
-        exit 1
-      fi
-
-      echo "Trying again with origin=true..."
-      export origin=true
-      pull_modified_tests
-      return $?
-    fi
-
-    echo "Trying again with all=true..."
-    export all=true
-    pull_modified_tests
-    return $?
+    exit_fatal_with_usage 'No modified tests found'
   fi
 
   mapfile -t all_projects < <("${_SCRIPT_DIR}/g_project_names")

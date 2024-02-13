@@ -244,6 +244,18 @@ function log_and_run_if_not_debug() {
 function log_stderr() {
   echo "$@" >&2
 }
+function log_debug() {
+  log_stderr "DEBUG" "$@"
+}
+function log_warn() {
+  log_stderr "WARNING" "$@"
+}
+function log_error() {
+  log_stderr "ERROR" "$@"
+}
+function log_fatal() {
+  log_stderr "FATAL" "$@"
+}
 function exit_fatal_with_usage() {
   if command -v _usage >/dev/null 2>&1; then
     log_with_title_sep USAGE
