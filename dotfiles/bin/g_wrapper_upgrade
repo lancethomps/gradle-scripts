@@ -75,7 +75,6 @@ done
 
 function main() {
   local gradle_args=("$@")
-  cd_to_git_base_dir
 
   if check_true "${bin-}"; then
     gradle_args+=(--distribution-type BIN)
