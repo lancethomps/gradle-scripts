@@ -6,6 +6,10 @@ export PATH="${_SCRIPT_DIR}/../dotfiles/bin:${PATH}"
 source "${_SCRIPT_DIR}/../dotfiles/bin/.common_copy.sh"
 ##################################################################################################################################################
 
+if test -z "${_SCRIPT_DIR-}"; then
+  exit_fatal "_SCRIPT_DIR must be set"
+fi
+
 function test_failed() {
   export exit_val=1
   local test_name="$1"
