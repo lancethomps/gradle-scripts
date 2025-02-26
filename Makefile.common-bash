@@ -1,6 +1,10 @@
 BASH_SCRIPTS := $(shell git grep --name-only '^.!/usr/bin/env bash$$' -- ':!./test')
 BASH_SCRIPTS_ALL := $(shell git grep --name-only '^.!/usr/bin/env bash$$')
 
+debug::
+	bash --version
+	git --version
+
 check-bash::
 	# Fail if any shellcheck warnings
 	@shellcheck --external-sources --source-path "$(dir $(realpath $(firstword $(MAKEFILE_LIST))))dotfiles" $(BASH_SCRIPTS)
