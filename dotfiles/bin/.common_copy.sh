@@ -143,6 +143,10 @@ function log_sep() {
   fi
   echo "$TERMINAL_SEP"
 }
+function log_spaced() {
+  echo
+  echo "$@"
+}
 function log_with_sep_around() {
   log_sep
   echo "$@"
