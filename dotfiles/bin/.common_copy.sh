@@ -245,6 +245,13 @@ function log_and_run_if_not_debug() {
   log_with_title_sep_no_leading_blank_line "$(get_args_quoted "$@")" >&2
   "$@"
 }
+function log_and_run_spaced_surround_if_not_debug() {
+  if check_debug; then
+    get_args_quoted "$@" >&2
+    return 0
+  fi
+  log_and_run_spaced_surround "$@"
+}
 function log_stderr() {
   echo "$@" >&2
 }
