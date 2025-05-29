@@ -282,7 +282,7 @@ function exit_fatal() {
   else
     shift
   fi
-  echo FATAL "$@"
+  log_fatal "$@"
   exit "$exit_code"
 }
 function return_fatal() {
@@ -292,7 +292,7 @@ function return_fatal() {
   else
     shift
   fi
-  echo FATAL "$@"
+  log_fatal "$@"
   return "$exit_code"
 }
 
