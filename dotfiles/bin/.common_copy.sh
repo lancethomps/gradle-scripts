@@ -90,6 +90,13 @@ function exit_if_debug() {
 function check_not_debug() {
   check_true "${debug_mode-}" && return 1 || return 0
 }
+function run_if_not_debug() {
+  if check_debug; then
+    get_args_quoted "$@" >&2
+    return 0
+  fi
+  "$@"
+}
 function check_true() {
   if test -z "${1-}"; then
     return 1
