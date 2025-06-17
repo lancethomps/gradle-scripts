@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 ################################################################### SETUP ########################################################################
 S="${BASH_SOURCE[0]}" && while [ -h "$S" ]; do D="$(cd -P "$(dirname "$S")" && pwd)" && S="$(readlink "$S")" && [[ $S != /* ]] && S="$D/$S"; done || true && _SCRIPT_DIR="$(cd -P "$(dirname "$S")" && pwd)" && unset S D
+export _SCRIPT_DIR
 # shellcheck source=./dotfiles/bin/.common_copy.sh
 source "${_SCRIPT_DIR}/dotfiles/bin/.common_copy.sh" || exit 1
 ##################################################################################################################################################
 
 REQUIRES_SCRIPTS_FILE="${_SCRIPT_DIR}/requires.txt"
+REQUIRES_PIP_FILE="${_SCRIPT_DIR}/requires-pip.txt"
+REQUIRES_PIP_EDITABLE_FILE="${_SCRIPT_DIR}/requires-pip-editable.txt"
 
 function install_brew() {
   echo "Installing required Homebrew formulas from Brewfile..."
-  log_and_run brew bundle install --file="${_SCRIPT_DIR}/Brewfile"
+  log_and_run_if_not_debug brew bundle install --file="${_SCRIPT_DIR}/Brewfile"
 }
 
 function install_pip() {
-  log_and_run pip install ltpylib
+  local required_scripts requires_file="$1"
+  shift
+
+  if ! test -e "${requires_file}"; then
+    return 0
+  fi
+
+  mapfile -t required_scripts < <(envsubst <"${requires_file}")
+  log_and_run_if_not_debug pip install "$@" "${required_scripts[@]}"
 }
 
 function finish_setup() {
@@ -40,7 +51,8 @@ function recommend_other_scripts() {
 
 function main() {
   install_brew
-  install_pip
+  install_pip "$REQUIRES_PIP_FILE"
+  install_pip "$REQUIRES_PIP_EDITABLE_FILE" --editable
   finish_setup
   recommend_other_scripts
 }

@@ -150,6 +150,34 @@ function log_sep() {
   fi
   echo "$TERMINAL_SEP"
 }
+# shellcheck disable=SC2120,SC2005
+function log_sep_large() {
+  if test -n "${1-}"; then
+    echo "$(repeat_char "${1}" "$(get_sep_cols)")"
+    return 0
+  fi
+
+  if test -z "${TERMINAL_LARGE_SEP-}"; then
+    TERMINAL_LARGE_SEP="$(repeat_char '#' "$(get_sep_cols)")"
+    export TERMINAL_LARGE_SEP
+  fi
+  echo "$TERMINAL_LARGE_SEP"
+}
+function log_section() {
+  local full_width title_width sep_width sep
+
+  full_width="$(get_sep_cols)"
+  # shellcheck disable=SC2000
+  title_width="$(echo "$@" | wc -c)"
+  sep_width="$(bc -e "(${full_width} - ${title_width}) / 2")"
+  sep="$(repeat_char '#' "$sep_width")"
+
+  {
+    log_sep_large
+    log_stderr "$(printf '%s %s %s\n' "$sep" "$*" "$sep")"
+    log_sep_large
+  } >&2
+}
 function log_spaced() {
   echo
   echo "$@"
