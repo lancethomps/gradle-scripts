@@ -164,17 +164,21 @@ function log_sep_large() {
   echo "$TERMINAL_LARGE_SEP"
 }
 function log_section() {
-  local full_width title_width sep_width sep
+  local full_width title_width sep_width sep ending=""
 
   full_width="$(get_sep_cols)"
   # shellcheck disable=SC2000
-  title_width="$(echo -n "$@" | wc -c)"
+  title_width="$(echo -n "$@" | python3 -c "import re;import sys;sys.stdout.write(re.sub(r'\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]', '', sys.stdin.read()))" | wc -c)"
   sep_width="$(bc -e "((${full_width} - ${title_width}) / 2) - 1")"
   sep="$(repeat_char '#' "$sep_width")"
 
+  if test "$((title_width + 2 + sep_width + sep_width))" -lt "${full_width}"; then
+    ending="#"
+  fi
+
   {
     log_sep_large
-    log_stderr "$(printf '%s %s %s\n' "$sep" "$*" "$sep")"
+    log_stderr "$(printf '%s %s %s\n' "$sep" "$*" "${sep}${ending}")"
     log_sep_large
   } >&2
 }
