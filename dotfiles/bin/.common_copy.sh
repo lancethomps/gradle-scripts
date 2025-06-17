@@ -168,8 +168,8 @@ function log_section() {
 
   full_width="$(get_sep_cols)"
   # shellcheck disable=SC2000
-  title_width="$(echo "$@" | wc -c)"
-  sep_width="$(bc -e "(${full_width} - ${title_width}) / 2")"
+  title_width="$(echo -n "$@" | wc -c)"
+  sep_width="$(bc -e "((${full_width} - ${title_width}) / 2) - 1")"
   sep="$(repeat_char '#' "$sep_width")"
 
   {
