@@ -39,11 +39,11 @@ function check_required_params_without_exit() {
 function confirm() {
   local response=""
   read -r -p "${1:-Are you sure?}"$'\n'"[Y/n]> " response
-  case "$response" in
+  case "${response-}" in
     [yY][eE][sS] | [yY] | "") true ;;
     [nN][oO] | [nN]) false ;;
     *)
-      echo "Incorrect value entered... Try again."
+      echo "Incorrect value entered, try again: ${response-}"
       confirm "$@"
       ;;
   esac
