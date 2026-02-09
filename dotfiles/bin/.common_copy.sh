@@ -335,6 +335,11 @@ function return_fatal() {
   return "$exit_code"
 }
 
+function log_sleep() {
+  echo sleep "$@" >&2
+  sleep "$@"
+}
+
 # shellcheck disable=SC2120
 function should_use_pager() {
   if test -n "${use_pager-}"; then
