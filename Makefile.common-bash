@@ -10,12 +10,12 @@ check-bash::
 	@shellcheck --external-sources --source-path "$(dir $(realpath $(firstword $(MAKEFILE_LIST))))dotfiles" $(BASH_SCRIPTS)
 
 lint-fix-bash::
-	@shfmt -s -i 2 -ci -l $(BASH_SCRIPTS_ALL)
+	@shfmt -s -i 2 -ci -l $(BASH_SCRIPTS_ALL) || true
 	@shfmt -s -i 2 -ci -w $(BASH_SCRIPTS_ALL)
 
 lint-bash::
 	# Fail if any bash scripts not formatted properly using shfmt
-	@shfmt -s -i 2 -ci -l $(BASH_SCRIPTS_ALL)
+	@shfmt -s -i 2 -ci -l $(BASH_SCRIPTS_ALL) || true
 	@shfmt -s -i 2 -ci -d $(BASH_SCRIPTS_ALL)
 
 lint:: check-bash lint-bash
