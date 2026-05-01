@@ -78,8 +78,13 @@ function print_detekt_reports() {
   for report in "${reports[@]}"; do
     if pcregrep -q '^## Findings \([1-9]' "$report"; then
       log_with_title_sep "$report"
-      # shellcheck disable=SC2016
-      gsed -n '/^## Findings/,$p' "$report" | mdcat -
+      if command -v mdcat >/dev/null 2>&1; then
+        # shellcheck disable=SC2016
+        gsed -n '/^## Findings/,$p' "$report" | mdcat -
+      else
+        # shellcheck disable=SC2016
+        gsed -n '/^## Findings/,$p' "$report"
+      fi
       echo "$(log_sep)"$'\n'
     fi
   done
