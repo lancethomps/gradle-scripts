@@ -7,3 +7,6 @@ help:: ## Print this help message
 
 debug::
 	$(MAKE) --version
+
+lint-fix::
+	@echo 'Running any lint-fix formatters that are registered...'
