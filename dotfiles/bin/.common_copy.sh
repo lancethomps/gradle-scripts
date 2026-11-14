@@ -38,7 +38,8 @@ function check_required_params_without_exit() {
 }
 function confirm() {
   local response=""
-  read -r -p "${1:-Are you sure?}"$'\n'"[Y/n]> " response
+  log_stderr "${1:-Are you sure?}"
+  read -r -p '[Y/n]> ' response 2>/dev/tty
   case "${response-}" in
     [yY][eE][sS] | [yY] | "") true ;;
     [nN][oO] | [nN]) false ;;
